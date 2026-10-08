@@ -19,11 +19,15 @@ interface Suite {
 
 const suites: Record<string, Suite> = {
   "contract-core": {
-    tests: "packages/contracts/test",
+    tests: "./packages/contracts/test",
     dataset: { id: "contract-core/1", digest: datasetDigest },
   },
-  "control-plane": { tests: "packages/delivery/test" },
-  "runtime-contract": { blocked: "M0-T03 not implemented: needs model credentials and a sandbox choice" },
+  "control-plane": { tests: "./packages/delivery/test" },
+  "sandbox-contract":
+    process.platform === "darwin"
+      ? { tests: "./packages/sandbox/test" }
+      : { blocked: "Seatbelt conformance requires a macOS host (run as loopit-worker, see script/macos/setup-worker.sh)" },
+  "runtime-contract": { blocked: "OpenCode Runtime adapter deferred (2026-10-08): using OpenCode's default model configuration for now" },
   "device-contract": { blocked: "M0-T04 not implemented: no registered device, platform or macOS worker" },
   recovery: { blocked: "M0-T05/T07 not implemented: no channel policy or independent recovery log" },
   "autonomy-e2e": { blocked: "M1 suite: requires a frozen M1 GoalSpec" },

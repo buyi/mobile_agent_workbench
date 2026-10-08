@@ -39,7 +39,7 @@ bun script/bench.ts verify --suite control-plane
 | 插件扩展 | v1 hooks、v2 effect：工具、agent、catalog 等；**不暴露数据库与 durable 事件** | 工具类扩展沿用；交付层不能仅靠插件 | 交付层以进程内库依赖 `@opencode-ai/core` |
 | 工作区 / Worker | `control-plane` 的 WorkspaceAdapter（local/remote target） | 待 T03 实测 | — |
 | Agent 循环、会话、工具、压缩、子代理 | 原生 | **沿用**（不自研第二套编码循环） | — |
-| OS 沙盒 | 权限交互不构成隔离（官方 SECURITY.md） | **缺失** | T03 |
+| OS 沙盒 | 权限交互不构成隔离（官方 SECURITY.md） | **扩展** | `packages/sandbox`：Seatbelt + 专用账户 |
 | 设备 Broker、构建/安装身份、渠道 | 无 | **缺失** | T04/T05 |
 | 独立 Gate 签发、Operation Ledger、独立恢复日志 | 无 | **缺失** | 合同已定义（`gate/1`、`operation/1`），执行在 T05/T06 |
 | 服务接口 | `server/` HTTP API、SDK | 待接入 | 交付命令的 HTTP 暴露在 M1-I01 |
@@ -59,7 +59,11 @@ bun script/bench.ts verify --suite control-plane
 | outbox 至少一次投递 | supported | 派发中崩溃后以 attempt=2 重投同一 eventId；消费者须按 eventId 去重 |
 | Run 状态机：暂停/取消须执行器确认，终态不恢复（M0-F04 的状态部分） | supported（状态层） | 进程树停止、设备核对属 T03/T04，unverified |
 | 预算不随新 Run 重置；已结案失败不改写（M0-A14） | supported（状态层） | 以 Run 次数 = 1 + maxRepairCycles 计；金额/时间封顶需执行层计量 |
-| Runtime 生命周期、沙盒、停止与恢复（M0-F03/F05/F07） | unverified | T03 未开始：需要模型凭据与沙盒方案 |
+| Runtime 生命周期、停止与恢复（M0-F03/F05） | unverified | 用户决定暂缓（2026-10-08），先使用 OpenCode 默认模型配置 |
+| macOS 沙盒：写入/读取/网络限制（M0-F07） | unverified | Seatbelt 后端与 macOS 合同测试已实现（[ADR-0003](../decisions/0003-macos-worker-sandbox.md)）；需在 Mac 上以 `loopit-worker` 运行 `sandbox-contract` |
+| macOS 进程隔离 | limited | 无 PID 命名空间，依赖 Supervisor 核对进程树（未实现） |
+| macOS 账户隔离 | unverified | `script/macos/setup-worker.sh` 已提供，未在 Mac 上执行 |
+| Linux 沙盒（bubblewrap） | unsupported | 仅保留接口位置 |
 | 设备、构建身份、渠道（M0-F08–F10） | unverified | T04/T05 被用户输入阻塞 |
 | 独立 Gate、上下文重建、计量（M0-F11/F12） | unverified | 合同与证据绑定规则已有单元测试；签发身份与存储未实现 |
 
@@ -83,6 +87,7 @@ M0 MilestoneManifest 只能在 T08 由独立检查器签发；当前若签发只
 | 首验平台、真机标识与 OS、fixture | T04、M0-A08/A09 |
 | 内部分发渠道、签名/分发凭据引用、停止分发方式 | T05、M0-A10/A11 |
 | 预算、观察窗口 | M1 GoalSpec 冻结 |
-| macOS Worker 主机 | T03 的 iOS 路线、T04 |
-| 模型提供方与凭据引用 | T03、M0-A04 |
+| macOS Worker 主机，及谁在上面运行 `setup-worker.sh` 与 `sandbox-contract` | 沙盒实测、T04 |
+| 模型提供方与凭据引用 | 暂用 OpenCode 默认配置；M0-A04 需要时再定 |
+| 沙盒方案 | **已定**：macOS Seatbelt + 专用低权限账户（ADR-0003） |
 | 产品模型 Project → Task → Run → Delivery | 公开 API 冻结（不阻塞 M0 合同） |

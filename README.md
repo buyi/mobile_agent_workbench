@@ -17,11 +17,14 @@ bun script/bench.ts verify --suite control-plane
 | `vendor/opencode` | 锁定的 OpenCode 底座（submodule） |
 | `packages/contracts` | GoalSpec、StageResult、Evidence、GateDecision 等合同 schema、交叉校验与固定样本 |
 | `packages/delivery` | 基于 OpenCode `EventV2` 与 SQLite 的交付状态：命令回执、事件、投影、outbox |
+| `packages/sandbox` | Worker 沙盒接口与 macOS Seatbelt 后端（需在 Mac 上实测） |
+| `script/macos/setup-worker.sh` | 在 Mac 上创建 `loopit-worker` / `loopit-signer` 专用账户 |
 | `script/bench.ts` | 评测入口，输出 result.json / events / artifact-manifest / metrics / human-interventions |
 
 - [规格文档索引](docs/README.md)
 - [OpenCode 选型决策](docs/decisions/0001-opencode-base.md)
 - [交付状态存储决策](docs/decisions/0002-delivery-state-on-opencode-store.md)
+- [macOS Worker 沙盒决策](docs/decisions/0003-macos-worker-sandbox.md)
 - [M0 选型记录与能力矩阵](docs/m0/opencode-adoption.md)
 - [产品、四层架构与 harness 边界](docs/loopit-workbench-spec.md)
 - [执行与交付契约](docs/execution-contracts.md)

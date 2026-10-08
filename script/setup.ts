@@ -19,6 +19,7 @@ const links: Record<string, string> = {
   "@opencode-ai/schema": join(vendor, "packages/schema"),
   "@loopit/contracts": join(root, "packages/contracts"),
   "@loopit/delivery": join(root, "packages/delivery"),
+  "@loopit/sandbox": join(root, "packages/sandbox"),
   effect: realpathSync(join(core, "node_modules/effect")),
   "drizzle-orm": realpathSync(join(core, "node_modules/drizzle-orm")),
   "@types/bun": realpathSync(join(core, "node_modules/@types/bun")),
