@@ -2,10 +2,27 @@
 
 以 **OpenCode** 为唯一开源主工程和 Agent 运行时，为 Loopit 建设自主研发工作台。人设定目标与验收标准，系统完成需求、设计、开发、验证、内部交付和运维观察。
 
-当前为 **v0.3 规格阶段**：OpenCode 选型已确认，具体发行版、扩展方式及能力实测由 M0 完成。本仓库当前仅包含规格与决策文档，尚未引入 OpenCode 源码或实现产品；不能将规格要求视为已通过的能力。
+当前处于 **M0 实施中**：已完成 M0-T01（OpenCode 锁定为 `v1.18.35`、版本化合同包、沿用/扩展/缺失记录）与 M0-T02（命令/事件/投影/outbox 控制面）。Runtime、沙盒、设备、构建、渠道与独立 Gate（T03–T08）尚未实现，M0 整体未通过；不能将规格要求视为已通过的能力。实测范围见 [M0 选型记录与能力矩阵](docs/m0/opencode-adoption.md)。
+
+```text
+git submodule update --init --depth 1 vendor/opencode
+(cd vendor/opencode && bun install --frozen-lockfile)
+bun script/setup.ts
+bun script/bench.ts verify --suite contract-core --dataset contract-core/1
+bun script/bench.ts verify --suite control-plane
+```
+
+| 目录 | 内容 |
+| --- | --- |
+| `vendor/opencode` | 锁定的 OpenCode 底座（submodule） |
+| `packages/contracts` | GoalSpec、StageResult、Evidence、GateDecision 等合同 schema、交叉校验与固定样本 |
+| `packages/delivery` | 基于 OpenCode `EventV2` 与 SQLite 的交付状态：命令回执、事件、投影、outbox |
+| `script/bench.ts` | 评测入口，输出 result.json / events / artifact-manifest / metrics / human-interventions |
 
 - [规格文档索引](docs/README.md)
 - [OpenCode 选型决策](docs/decisions/0001-opencode-base.md)
+- [交付状态存储决策](docs/decisions/0002-delivery-state-on-opencode-store.md)
+- [M0 选型记录与能力矩阵](docs/m0/opencode-adoption.md)
 - [产品、四层架构与 harness 边界](docs/loopit-workbench-spec.md)
 - [执行与交付契约](docs/execution-contracts.md)
 - [验收与评测](docs/acceptance-spec.md)

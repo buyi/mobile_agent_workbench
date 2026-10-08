@@ -11,6 +11,8 @@
 | [验收与评测规格](acceptance-spec.md) | 首个真实功能闭环、稳定性与性能门槛、故障注入、自我迭代验收 |
 | [参考资料与选型](reference-and-selection.md) | 过往建设的取舍、moremore 候选、官方资料与接入验证要求 |
 | [OpenCode 选型决策](decisions/0001-opencode-base.md) | 已接受的唯一底座、复用边界、M0 待验证项与重新评估条件 |
+| [交付状态存储决策](decisions/0002-delivery-state-on-opencode-store.md) | 交付事件、回执、outbox 落在 OpenCode 原生存储上的依据与缺口 |
+| [M0 选型记录与能力矩阵](m0/opencode-adoption.md) | 锁定 BOM、沿用/扩展/缺失、实测能力矩阵与待冻结决策 |
 | [M0 契约与接入验证](milestones/m0-contracts-and-integration.md) | 最小控制骨架、Runtime/设备/构建/渠道合同实验与 M1 输入冻结 |
 | [M1 真实功能自主交付](milestones/m1-autonomous-feature.md) | Loopit 真实小功能六阶段闭环、自修复、恢复与内部交付 |
 | [M2 日常工作台 v1](milestones/m2-daily-workbench.md) | 同一底座三端、自有后台、日常评测与最小经验晋升 |
