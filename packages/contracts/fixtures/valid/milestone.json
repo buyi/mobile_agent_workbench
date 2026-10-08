@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "milestone/1", "milestone": "M0", "specDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "sourceRevision": "0123456789abcdef0123456789abcdef01234567",
+  "contractVersions": ["goal/1"], "upstreamManifestRefs": [], "inputRefs": [], "outputRefs": [],
+  "capabilityMatrixRef": "file://docs/m0/capability-matrix.md",
+  "testResults": [ { "testId": "M0-A01", "required": true, "outcome": "passed", "evidenceRef": "artifact://bench-contract-core" },
+                   { "testId": "M0-A04", "required": true, "outcome": "notRun" } ],
+  "testResultsRef": "artifact://bench-results", "metricsRef": "artifact://bench-metrics",
+  "unresolvedConstraints": [ { "id": "runtime-model-credentials", "reason": "未提供模型凭据", "impact": "M0-A04 无法运行", "retryTrigger": "凭据引用登记后" } ],
+  "issuer": { "kind": "verifier", "id": "milestone-checker" }, "issuedAt": "2026-10-08T12:00:00Z", "verdict": "blocked"
+}

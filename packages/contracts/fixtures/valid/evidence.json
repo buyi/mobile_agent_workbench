@@ -1,0 +1,10 @@
+{
+  "schemaVersion": "evidence/1", "evidenceId": "ev-001", "artifact": { "artifactId": "art-001", "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" },
+  "issuer": { "kind": "device-broker", "id": "broker-01" }, "criterionIds": ["F1"],
+  "goal": { "taskId": "feature-001", "goalRevision": 1, "acceptanceDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+  "candidateDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "buildDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "environmentRevision": "test@2026-10-08", "toolVersion": "broker/0.1.0",
+  "observedAt": "2026-10-08T10:05:00Z", "observationWindow": { "start": "2026-10-08T10:04:00Z", "end": "2026-10-08T10:05:00Z" },
+  "result": "passed", "limitations": [],
+  "device": { "platform": "android", "deviceKind": "physical", "deviceIdRef": "device://android/serial-ref-01", "os": "Android 15",
+    "installedBuildReceipt": { "ref": "artifact://install-001", "buildDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" }, "fixtureRef": "fixture://loopit/test-account" }
+}

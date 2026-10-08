@@ -1,0 +1,123 @@
+{
+  "schemaVersion": "plan/1",
+  "planId": "plan-001",
+  "version": 1,
+  "goal": {
+    "taskId": "feature-001",
+    "goalRevision": 1,
+    "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "budgetMinutes": 120,
+  "nodes": [
+    {
+      "nodeId": "n-requirements",
+      "stage": "requirements",
+      "mode": "run",
+      "requiredInputs": [
+        "goal-spec"
+      ],
+      "outputKinds": [
+        "requirement-spec"
+      ],
+      "capabilities": [],
+      "budgetShareMinutes": 15
+    },
+    {
+      "nodeId": "n-design",
+      "stage": "design",
+      "mode": "run",
+      "requiredInputs": [
+        "goal-spec",
+        "requirement-spec"
+      ],
+      "outputKinds": [
+        "design-spec"
+      ],
+      "capabilities": [],
+      "budgetShareMinutes": 15
+    },
+    {
+      "nodeId": "n-development",
+      "stage": "development",
+      "mode": "run",
+      "requiredInputs": [
+        "goal-spec",
+        "design-spec"
+      ],
+      "outputKinds": [
+        "candidate-manifest"
+      ],
+      "capabilities": [],
+      "budgetShareMinutes": 15
+    },
+    {
+      "nodeId": "n-verification",
+      "stage": "verification",
+      "mode": "run",
+      "requiredInputs": [
+        "goal-spec",
+        "candidate-manifest"
+      ],
+      "outputKinds": [
+        "verification-report"
+      ],
+      "capabilities": [],
+      "budgetShareMinutes": 15
+    },
+    {
+      "nodeId": "n-release",
+      "stage": "release",
+      "mode": "run",
+      "requiredInputs": [
+        "goal-spec",
+        "verification-report"
+      ],
+      "outputKinds": [
+        "release-manifest"
+      ],
+      "capabilities": [],
+      "budgetShareMinutes": 15
+    },
+    {
+      "nodeId": "n-operations",
+      "stage": "operations",
+      "mode": "run",
+      "requiredInputs": [
+        "goal-spec",
+        "release-manifest"
+      ],
+      "outputKinds": [
+        "observation-report"
+      ],
+      "capabilities": [],
+      "budgetShareMinutes": 15
+    }
+  ],
+  "edges": [
+    {
+      "from": "n-requirements",
+      "to": "n-design",
+      "artifactKind": "requirement-spec"
+    },
+    {
+      "from": "n-design",
+      "to": "n-development",
+      "artifactKind": "design-spec"
+    },
+    {
+      "from": "n-development",
+      "to": "n-verification",
+      "artifactKind": "candidate-manifest"
+    },
+    {
+      "from": "n-verification",
+      "to": "n-release",
+      "artifactKind": "verification-report"
+    },
+    {
+      "from": "n-release",
+      "to": "n-operations",
+      "artifactKind": "release-manifest"
+    }
+  ]
+}

@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "command/1",
+  "type": "createTask",
+  "commandId": "cmd-001",
+  "actor": {
+    "kind": "user",
+    "id": "owner"
+  },
+  "issuedAt": "2026-10-08T10:00:00Z",
+  "taskId": "feature-001",
+  "expectedVersion": 0,
+  "goal": {
+    "schemaVersion": "goal/1",
+    "projectId": "loopit-mobile",
+    "taskId": "feature-001",
+    "goalRevision": 1,
+    "objective": "在设置中提供可查看和复制非敏感版本及环境信息的诊断页",
+    "scope": {
+      "repositoryRef": "repo://loopit-mobile",
+      "baseRevision": "0123456789abcdef0123456789abcdef01234567",
+      "allowedPaths": [
+        "src/settings/diagnostics/**"
+      ],
+      "excluded": [
+        "修改登录方式",
+        "公开商店发布"
+      ]
+    },
+    "acceptance": [
+      {
+        "id": "F1",
+        "expected": "从设置可进入诊断页并返回",
+        "verification": "executable",
+        "evidenceKinds": [
+          "ui-observation"
+        ],
+        "requiredAtStage": "verification"
+      },
+      {
+        "id": "F2",
+        "expected": "显示版本与构建标识，与设备安装事实一致",
+        "verification": "executable",
+        "evidenceKinds": [
+          "installed-build-receipt",
+          "ui-observation"
+        ],
+        "requiredAtStage": "verification",
+        "dependsOn": [
+          "F1"
+        ]
+      },
+      {
+        "id": "F5",
+        "expected": "正常与大字体可读，无关键控件遮挡",
+        "verification": "semantic",
+        "evidenceKinds": [
+          "ui-screenshot"
+        ],
+        "requiredAtStage": "verification",
+        "rubricRef": "rubric://loopit/readability#sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      {
+        "id": "F7",
+        "expected": "页面进入耗时回归不超过预算",
+        "verification": "measured",
+        "evidenceKinds": [
+          "perf-sample"
+        ],
+        "requiredAtStage": "verification",
+        "threshold": {
+          "metric": "page_enter_p95_delta_ms",
+          "comparator": "<=",
+          "value": 30
+        }
+      },
+      {
+        "id": "D1",
+        "expected": "内部渠道可安装且观察窗口健康",
+        "verification": "measured",
+        "evidenceKinds": [
+          "release-receipt",
+          "health-probe"
+        ],
+        "requiredAtStage": "operations",
+        "dependsOn": [
+          "F2"
+        ],
+        "threshold": {
+          "metric": "health_probe_failures",
+          "comparator": "==",
+          "value": 0
+        }
+      }
+    ],
+    "targetMatrix": [
+      {
+        "platform": "android",
+        "deviceKind": "physical",
+        "deviceRef": "device://android/serial-ref-01#sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    ],
+    "delivery": {
+      "channelRef": "channel://internal-test#sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "environmentRef": "env://test#sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "merge": false,
+      "observation": {
+        "minutes": 30,
+        "minHealthProbes": 30,
+        "minPathRuns": 10
+      }
+    },
+    "policyRef": "policy://loopit-internal/v1#sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "budgets": {
+      "wallMinutes": 120,
+      "maxRepairCycles": 3,
+      "maxParallelWriters": 1
+    },
+    "costBudgetRef": "budget://project-default/v1#sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "resources": {
+      "fixtureRefs": [
+        "fixture://loopit/test-account#sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ],
+      "secretRefs": [
+        "secret://loopit/internal-channel-token"
+      ]
+    }
+  }
+}

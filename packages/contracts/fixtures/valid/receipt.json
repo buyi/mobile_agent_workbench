@@ -1,0 +1,5 @@
+{
+  "schemaVersion": "receipt/1", "commandId": "cmd-001", "commandType": "createTask", "requestDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "status": "rejected", "aggregateId": "feature-001", "aggregateVersion": 3,
+  "rejection": { "code": "version_conflict", "message": "expected 2, current 3" }, "recordedAt": "2026-10-08T10:00:00Z"
+}

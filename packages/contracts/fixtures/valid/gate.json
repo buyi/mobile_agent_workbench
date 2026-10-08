@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "gate/1", "decisionId": "gate-verify-001", "scope": "stage", "stage": "verification",
+  "goal": { "taskId": "feature-001", "goalRevision": 1, "acceptanceDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+  "inputEvidenceDigests": ["sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"], "verifier": { "id": "verifier-01", "version": "0.1.0", "signatureRef": "sig://verifier-01/gate-verify-001" },
+  "decidedAt": "2026-10-08T10:10:00Z",
+  "results": [
+    { "criterionId": "F1", "outcome": "passed", "evidenceRefs": ["evidence://ev-001"] },
+    { "criterionId": "F2", "outcome": "passed", "evidenceRefs": ["evidence://ev-002"] },
+    { "criterionId": "F5", "outcome": "passed", "evidenceRefs": ["evidence://ev-003"] },
+    { "criterionId": "F7", "outcome": "passed", "evidenceRefs": ["evidence://ev-004"] },
+    { "criterionId": "D1", "outcome": "pending", "evidenceRefs": [] }
+  ],
+  "uncovered": [], "verdict": "passed"
+}

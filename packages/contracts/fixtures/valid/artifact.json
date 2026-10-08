@@ -1,0 +1,6 @@
+{
+  "schemaVersion": "artifact/1", "artifactId": "art-001", "kind": "ui-observation", "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "size": 2048, "mediaType": "application/json",
+  "storageRef": "cas://loopit/sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "projectId": "loopit-mobile", "taskId": "feature-001", "goalRevision": 1, "runId": "run-001",
+  "stageRunId": "sr-verify-001", "attemptId": "att-002", "producer": { "kind": "device-broker", "id": "broker-01" },
+  "createdAt": "2026-10-08T10:05:00Z", "inputDigests": ["sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"], "sensitivity": "internal", "retentionPolicy": "retention://default/v1"
+}

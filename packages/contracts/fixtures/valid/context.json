@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "context/1", "manifestId": "ctx-001", "attemptId": "att-001", "createdAt": "2026-10-08T10:00:00Z",
+  "goal": { "taskId": "feature-001", "goalRevision": 1, "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+  "policy": { "ref": "policy://loopit-internal/v1", "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+  "toolCapabilities": [{ "toolId": "git", "version": "2.43.0" }],
+  "effectiveConfig": [{ "kind": "instruction", "ref": "file://AGENTS.md", "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" }],
+  "knowledgeRefs": [], "historyRefs": [],
+  "budget": { "wallMinutesRemaining": 120, "repairCyclesRemaining": 3 }
+}

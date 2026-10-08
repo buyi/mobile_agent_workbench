@@ -1,0 +1,7 @@
+{
+  "schemaVersion": "stage-result/1", "stageRunId": "sr-design-001", "stage": "design", "status": "not_applicable",
+  "inputRefs": ["artifact://requirement-spec-001"], "outputRefs": [], "attempts": [], "checks": [],
+  "disposition": { "stageId": "design", "mode": "not_applicable", "reason": "纯文案修复，无 UI 结构变化", "ruleRef": "rule://short-circuit/no-ui-change/v1", "inputDigests": ["sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"], "reusedArtifactRefs": [], "validatedBy": "verifier-01", "validatedAt": "2026-10-08T10:00:00Z" },
+  "timing": { "queuedMs": 0, "runMs": 12 },
+  "usage": { "cost": { "known": true, "usd": 0 }, "wallMs": 12, "humanInterventions": 0 }
+}

@@ -1,0 +1,9 @@
+{
+  "schemaVersion": "policy/1", "policyId": "loopit-internal", "version": 1, "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "permissions": { "writablePaths": ["src/settings/**"], "network": "allowlist", "networkAllowlist": ["registry.npmjs.org"], "maxSideEffect": "reconcile_required" },
+  "tools": [{ "toolId": "git", "version": "2.43.0" }],
+  "data": { "allowedSensitivity": ["public", "internal"], "retentionPolicyRef": "retention://default/v1" },
+  "deployment": { "environments": ["env://test"], "channels": ["channel://internal-test"], "autoMerge": false },
+  "resources": { "devices": ["device://android/serial-ref-01"], "workers": ["worker://mac-01"], "secrets": ["secret://loopit/internal-channel-token"] },
+  "failure": { "maxTransientAttempts": 3, "maxRepairCycles": 3 }
+}

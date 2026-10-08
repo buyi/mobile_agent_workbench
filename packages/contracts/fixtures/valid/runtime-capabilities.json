@@ -1,0 +1,7 @@
+{
+  "schemaVersion": "runtime-capabilities/1", "runtime": { "name": "opencode", "version": "1.18.35" }, "probedAt": "2026-10-08T10:00:00Z",
+  "structuredEvents": { "status": "unverified" }, "images": { "status": "unverified" }, "toolsMcp": { "status": "unverified" },
+  "nativeResume": { "status": "unverified" }, "checkpoint": { "status": "unverified" }, "steer": { "status": "unverified" },
+  "cancelMode": { "status": "unverified", "mode": "none" }, "processTreeControl": { "status": "unverified" },
+  "permissionModes": [], "sandboxKinds": [], "usageReporting": { "status": "unverified" }, "maxConcurrency": 0
+}

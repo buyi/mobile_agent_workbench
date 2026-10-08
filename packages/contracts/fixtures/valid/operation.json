@@ -1,0 +1,5 @@
+{
+  "schemaVersion": "operation/1", "operationId": "op-publish-001", "idempotencyKey": "publish:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "requestDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "sideEffect": "reconcile_required", "ownerGeneration": 3, "recoveryEpoch": 1, "state": "indeterminate",
+  "reconcileMethod": "provider-query", "lastObservedAt": "2026-10-08T10:20:00Z"
+}

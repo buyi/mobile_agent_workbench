@@ -1,0 +1,5 @@
+{
+  "schemaVersion": "event/1", "eventId": "evt_01", "aggregateId": "feature-001", "aggregateVersion": 1,
+  "eventType": "loopit.task.created", "eventSchemaVersion": 1, "commandId": "cmd-001", "causationId": "cmd-001", "correlationId": "cmd-001",
+  "occurredAt": "2026-10-08T10:00:00Z", "recordedAt": "2026-10-08T10:00:00Z", "actor": { "kind": "user", "id": "owner" }, "payload": {}
+}
