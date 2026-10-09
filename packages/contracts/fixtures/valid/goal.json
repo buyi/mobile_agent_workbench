@@ -17,7 +17,7 @@
     { "id": "F7", "expected": "页面进入耗时回归不超过预算", "verification": "measured", "evidenceKinds": ["perf-sample"], "requiredAtStage": "verification", "threshold": { "metric": "page_enter_p95_delta_ms", "comparator": "<=", "value": 30 } },
     { "id": "D1", "expected": "内部渠道可安装且观察窗口健康", "verification": "measured", "evidenceKinds": ["release-receipt", "health-probe"], "requiredAtStage": "operations", "dependsOn": ["F2"], "threshold": { "metric": "health_probe_failures", "comparator": "==", "value": 0 } }
   ],
-  "targetMatrix": [{ "platform": "android", "deviceKind": "physical", "deviceRef": "device://android/serial-ref-01#sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" }],
+  "targetMatrix": [{ "platform": "android", "deviceKind": "physical", "os": "Android 15", "deviceRef": "device://android/serial-ref-01#sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" }],
   "delivery": {
     "channelRef": "channel://internal-test#sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "environmentRef": "env://test#sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",

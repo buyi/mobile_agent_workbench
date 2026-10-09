@@ -46,7 +46,7 @@ GoalSpec 是运行的根输入。用户自然语言可以由模型整理成结�
       "evidenceKinds": ["clipboard-receipt", "privacy-check"]
     }
   ],
-  "targetMatrix": [{"platform": "android", "deviceKind": "physical"}],
+  "targetMatrix": [{"platform": "ios", "deviceKind": "simulator", "deviceRef": "<pinned-device-descriptor>", "os": "<verified-os-version>"}],
   "delivery": {
     "channelRef": "internal-test",
     "environmentRef": "test",
@@ -59,6 +59,8 @@ GoalSpec 是运行的根输入。用户自然语言可以由模型整理成结�
 ```
 
 预算值是建议初始值。运行前 MUST 将所有引用解析为具体版本并验证，禁止带占位符提交运行。目标引用一个完整的授权及预算版本，避免把每次审批藏在模型对话中。
+
+用户已选定首验走 iOS 模拟器（2026-10-09），上例中的具体功能、设备注册引用和预算仍是待冻结输入。每个声明的设备目标必须提供带内容摘要的 `deviceRef` 和准确 OS 版本；语义验收的 `rubricRef` 同样必须固定摘要。没有设备需求的目标可以使用空设备矩阵。
 
 目标修订产生新 GoalRevision。若已有写入者执行旧 revision，应先安全停下或让已开始且无法取消的操作完成并核对，尚未结案的旧 revision 标为 superseded；已经成功、失败或取消的旧 revision 保持终态，只增加 successor 引用。新 revision 根据变化范围重验，不能继承不再匹配的成功结论或抹去原有失败。
 
@@ -75,6 +77,8 @@ Artifact 表示“存在一项产出”；Evidence 表示“这项产出如何�
 ### 2.2 GateDecision
 
 GateDecision 包含输入证据摘要集合、验收契约摘要、验证器版本与签名、每条结论、失败码、未覆盖项和最终 verdict。verdict 为 `passed / failed / blocked`。`not_applicable` 是经过合同允许的阶段 disposition，不是验收项的第四种通过方法。
+
+`acceptanceDigest` 统一由合同包的 `digestOf(goal.acceptance)` 计算，Gate 与 Evidence 均须与当前验收内容一致，不能只比较任务 ID 和 revision。每个验收 ID 只能判定一次；未覆盖列表不能包含未知、重复或已经判定的条目。设备证据须匹配目标的设备引用、平台、设备类型和 OS，不能用同平台另一台设备的结果替代。
 
 Gate MUST 检查必需项完备、来源合法、版本匹配、窗口有效、未被撤回、评估器有权限。模型文本不能作为程序退出码、网络回执、安装身份或性能测量的替代品。没有观测到错误只在采集窗口与覆盖足够时支持“该窗口内未发现错误”。
 

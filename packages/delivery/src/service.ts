@@ -1,7 +1,6 @@
-import { asc, eq, isNull } from "drizzle-orm"
+import { and, asc, eq, isNull } from "drizzle-orm"
 import { Cause, Context, Effect, Exit, Layer, Option, Stream } from "effect"
 import { Database } from "@opencode-ai/core/database/database"
-import { DatabaseMigration } from "@opencode-ai/core/database/migration"
 import { EventV2 } from "@opencode-ai/core/event"
 import {
   type Command,
@@ -13,9 +12,10 @@ import {
   type RunStatus,
   type TaskStatus,
 } from "@loopit/contracts"
-import { definitions, type DeliveryEvent, manifest } from "./events"
+import { definitions, type DeliveryEvent, manifest, RunStarted } from "./events"
+import { databaseLayerFromPath, ensureDeliveryDurability } from "./database"
 import { decide, evolve, type RunState, type TaskState, taskStatus } from "./model"
-import { migrations, OutboxTable, ReceiptTable, RunTable, TaskTable } from "./sql"
+import { applyMigrations, OutboxTable, ReceiptTable, RunTable, TaskTable } from "./sql"
 
 export type ExecuteResult =
   | { readonly kind: "receipt"; readonly receipt: CommandReceipt }
@@ -54,6 +54,7 @@ export interface Options {
 }
 
 class VersionRace extends Error {}
+class RunIdConflict extends Error {}
 
 const PAGE = 500
 
@@ -64,7 +65,8 @@ export const layerWith = (options: Options = {}) =>
       const { db } = yield* Database.Service
       const events = yield* EventV2.Service
       const now = options.now ?? (() => new Date().toISOString())
-      yield* DatabaseMigration.applyOnly(db, migrations).pipe(Effect.orDie)
+      yield* ensureDeliveryDurability(db).pipe(Effect.orDie)
+      yield* applyMigrations(db).pipe(Effect.orDie)
 
       const loadState = (taskId: string) =>
         db
@@ -130,12 +132,25 @@ export const layerWith = (options: Options = {}) =>
             for (const id of [runId, stopped]) {
               if (!id) continue
               const run = state.runs[id]
-              yield* db
-                .insert(RunTable)
-                .values({ run_id: id, task_id: state.taskId, goal_revision: run.goalRevision, status: run.status, updated_at: at })
-                .onConflictDoUpdate({ target: RunTable.run_id, set: { status: run.status, updated_at: at } })
-                .run()
-                .pipe(Effect.orDie)
+              if (payload.type === RunStarted.type) {
+                // Run IDs are global, unlike task aggregate versions. Check and
+                // claim the ID under EventV2's BEGIN IMMEDIATE transaction so
+                // concurrent writers on different tasks cannot both accept it.
+                const existing = yield* db.select().from(RunTable).where(eq(RunTable.run_id, id)).get().pipe(Effect.orDie)
+                if (existing) return yield* Effect.die(new RunIdConflict(`Run ${id} already exists`))
+                yield* db
+                  .insert(RunTable)
+                  .values({ run_id: id, task_id: state.taskId, goal_revision: run.goalRevision, status: run.status, updated_at: at })
+                  .run()
+                  .pipe(Effect.orDie)
+              } else {
+                yield* db
+                  .update(RunTable)
+                  .set({ status: run.status, updated_at: at })
+                  .where(and(eq(RunTable.run_id, id), eq(RunTable.task_id, state.taskId)))
+                  .run()
+                  .pipe(Effect.orDie)
+              }
             }
           }),
         )
@@ -209,7 +224,14 @@ export const layerWith = (options: Options = {}) =>
           if (Exit.isSuccess(exit)) return (yield* loadReceipt(command.commandId))!
           // Duplicate commandId raced us, or another writer advanced the aggregate: re-run the whole step.
           if (yield* loadReceipt(command.commandId)) return (yield* loadReceipt(command.commandId))!
-          if (Cause.squash(exit.cause) instanceof VersionRace) return undefined
+          const failure = Cause.squash(exit.cause)
+          if (failure instanceof VersionRace) return undefined
+          if (failure instanceof RunIdConflict) {
+            // The rejected event and all its projections were rolled back. Only
+            // a rejection receipt remains, identical on subsequent retries.
+            const current = yield* loadState(command.taskId)
+            return yield* storeRejection(command, requestDigest, current?.version ?? 0, "run_exists", failure.message)
+          }
           return yield* Effect.failCause(exit.cause as Cause.Cause<never>)
         }).pipe(Effect.orDie)
 
@@ -334,6 +356,6 @@ export const layer = layerWith()
 
 /** Delivery service on an OpenCode database file, with its own EventV2 instance. */
 export const layerFromPath = (filename: string, options?: Options) =>
-  layerWith(options).pipe(Layer.provideMerge(EventV2.layerWith()), Layer.provideMerge(Database.layerFromPath(filename)))
+  layerWith(options).pipe(Layer.provideMerge(EventV2.layerWith()), Layer.provideMerge(databaseLayerFromPath(filename)))
 
 export type { RunStatus, TaskStatus }

@@ -1,0 +1,239 @@
+{
+  "schemaVersion": "m1-local-materials/1",
+  "status": "prepared-not-registered",
+  "notAResourceBroker": true,
+  "containsSecretMaterial": false,
+  "repository": {
+    "path": "/Users/buyi/yongyue/leap_loopit_rn",
+    "worktree": "/Users/buyi/Documents/bench/.bench/workspaces/loopit-m0-ios",
+    "revision": "9874bd473cfb3f9603bb580a2085e68983eb98fa",
+    "expectedPorcelain": " M ios/Podfile.lock\n",
+    "expectedDiffDigest": "sha256:46d6ef18db0b471635c77bd4cdab2dc7feb64ee8abe91282764f8c6107a437f0",
+    "preparedPatchMaterialId": "preparation-patch",
+    "basePodLockDigest": "sha256:bdfb928dbb0130619c3072bab8a5bde731dd1cc85f32394e1979da0d4c38f18d",
+    "preparedPodLockDigest": "sha256:82b23dee36e45451e4f2d917da09cf14b82d72772392df83a66cbc7603b61c27",
+    "diffArguments": [
+      "diff",
+      "--binary",
+      "--abbrev=9",
+      "HEAD"
+    ]
+  },
+  "materials": [
+    {
+      "id": "confirmed-inputs",
+      "kind": "file",
+      "path": "/Users/buyi/Documents/bench/docs/m0/m1-inputs/confirmed-inputs.json",
+      "digest": "sha256:29cc6be5df38d07d37fd6704ff50cdb3502e2e7970040371a1ca7aed9fde7149",
+      "ref": "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/confirmed-inputs.json#sha256:29cc6be5df38d07d37fd6704ff50cdb3502e2e7970040371a1ca7aed9fde7149",
+      "role": "User confirmation summary and explicit unresolved decisions",
+      "includeInGoalInputRefs": true,
+      "availability": "local-machine-only"
+    },
+    {
+      "id": "preparation-patch",
+      "kind": "file",
+      "path": "/Users/buyi/Documents/bench/docs/m0/m1-inputs/ios-local-podspec-checksums.patch",
+      "digest": "sha256:46d6ef18db0b471635c77bd4cdab2dc7feb64ee8abe91282764f8c6107a437f0",
+      "ref": "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/ios-local-podspec-checksums.patch#sha256:46d6ef18db0b471635c77bd4cdab2dc7feb64ee8abe91282764f8c6107a437f0",
+      "role": "Recorded two-line baseline preparation, not M1 feature code",
+      "includeInGoalInputRefs": true,
+      "availability": "local-machine-only"
+    },
+    {
+      "id": "ios-preflight",
+      "kind": "file",
+      "path": "/Users/buyi/Documents/bench/.bench/m0-fixes/ios-preflight.json",
+      "digest": "sha256:0e1ab84eb5728b550a033f6a4d0deb4eeece6cf90676b3374c56d7d53e60f08d",
+      "ref": "file:///Users/buyi/Documents/bench/.bench/m0-fixes/ios-preflight.json#sha256:0e1ab84eb5728b550a033f6a4d0deb4eeece6cf90676b3374c56d7d53e60f08d",
+      "role": "Historical build inventory with base/prepared dependency hashes corrected by post-build read-only verification; no new build claimed",
+      "includeInGoalInputRefs": true,
+      "availability": "local-machine-only"
+    },
+    {
+      "id": "baseline-app-inventory",
+      "kind": "file",
+      "path": "/Users/buyi/Documents/bench/.bench/m0-fixes/ios-simulator-install-v2/build-inventory.json",
+      "digest": "sha256:7d1364bb016a1d9f1bfe179473fa347a6642d3d8be35feb0548201863443fa3f",
+      "ref": "file:///Users/buyi/Documents/bench/.bench/m0-fixes/ios-simulator-install-v2/build-inventory.json#sha256:7d1364bb016a1d9f1bfe179473fa347a6642d3d8be35feb0548201863443fa3f",
+      "role": "Original baseline app byte inventory, not new feature evidence",
+      "includeInGoalInputRefs": true,
+      "availability": "local-machine-only"
+    },
+    {
+      "id": "ios-install-probe",
+      "kind": "file",
+      "path": "/Users/buyi/Documents/bench/.bench/m0-fixes/ios-simulator-install-v2/result.json",
+      "digest": "sha256:1e4a97aa74ca45d89f376358f7a94e92a3fedc3d8257d902ba756233ddb06175",
+      "ref": "file:///Users/buyi/Documents/bench/.bench/m0-fixes/ios-simulator-install-v2/result.json#sha256:1e4a97aa74ca45d89f376358f7a94e92a3fedc3d8257d902ba756233ddb06175",
+      "role": "Historical operator install/identity experiment; not InstallReceipt/Gate",
+      "includeInGoalInputRefs": true,
+      "availability": "local-machine-only"
+    },
+    {
+      "id": "ios-ui-summary",
+      "kind": "file",
+      "path": "/Users/buyi/Documents/bench/.bench/m0-fixes/ios-ui/summary.json",
+      "digest": "sha256:6e963a2cd433808580bca7285e53e1ba71585edcfb200d30e84fbbd839bab6db",
+      "ref": "file:///Users/buyi/Documents/bench/.bench/m0-fixes/ios-ui/summary.json#sha256:6e963a2cd433808580bca7285e53e1ba71585edcfb200d30e84fbbd839bab6db",
+      "role": "Historical stale_snapshot proof and original app_drift failure",
+      "includeInGoalInputRefs": true,
+      "availability": "local-machine-only"
+    },
+    {
+      "id": "ios-foreground-summary",
+      "kind": "file",
+      "path": "/Users/buyi/Documents/bench/.bench/m0-fixes/ios-foreground/summary.json",
+      "digest": "sha256:2a887d311cfa349f7786f10df16f97c448f5dc150bf01b0ced9be2571a089d0a",
+      "ref": "file:///Users/buyi/Documents/bench/.bench/m0-fixes/ios-foreground/summary.json#sha256:2a887d311cfa349f7786f10df16f97c448f5dc150bf01b0ced9be2571a089d0a",
+      "role": "Historical private adapter foreground and cleanup proof; not Broker",
+      "includeInGoalInputRefs": true,
+      "availability": "local-machine-only"
+    },
+    {
+      "id": "ios-owned-process-cleanup",
+      "kind": "file",
+      "path": "/Users/buyi/Documents/bench/.bench/m0-fixes/ios-foreground/owned-process-cleanup.json",
+      "digest": "sha256:295d35ed6e1f3211938af16a2435f3c2aee62bb54ee4664ab0b39132d426b2ec",
+      "ref": "file:///Users/buyi/Documents/bench/.bench/m0-fixes/ios-foreground/owned-process-cleanup.json#sha256:295d35ed6e1f3211938af16a2435f3c2aee62bb54ee4664ab0b39132d426b2ec",
+      "role": "Historical private daemon/runner exit proof",
+      "includeInGoalInputRefs": true,
+      "availability": "local-machine-only"
+    },
+    {
+      "id": "m0-cost-policy",
+      "kind": "file",
+      "path": "/Users/buyi/Documents/bench/docs/m0/model-experiment-cost.json",
+      "digest": "sha256:c350cfe87c407bff0e521ef9bd2b3c76afbc9892b4cce7388cc74bd263677f32",
+      "ref": "file:///Users/buyi/Documents/bench/docs/m0/model-experiment-cost.json#sha256:c350cfe87c407bff0e521ef9bd2b3c76afbc9892b4cce7388cc74bd263677f32",
+      "role": "M0-only unknown-cost authorization; NOT M1 costBudgetRef",
+      "includeInGoalInputRefs": false,
+      "availability": "local-machine-only"
+    },
+    {
+      "id": "goal-schema",
+      "kind": "file",
+      "path": "/Users/buyi/Documents/bench/packages/contracts/src/goal.ts",
+      "digest": "sha256:1e232b8954d28bb22fd02aabbc3d8fb6aaf14d4c054297600b84fb6646def785",
+      "ref": "file:///Users/buyi/Documents/bench/packages/contracts/src/goal.ts#sha256:1e232b8954d28bb22fd02aabbc3d8fb6aaf14d4c054297600b84fb6646def785",
+      "role": "Existing GoalSpec/validateGoal/checkFrozen source used by preparation",
+      "includeInGoalInputRefs": false,
+      "availability": "local-machine-only"
+    },
+    {
+      "id": "package-lock",
+      "kind": "file",
+      "path": "/Users/buyi/Documents/bench/.bench/workspaces/loopit-m0-ios/package-lock.json",
+      "digest": "sha256:2100ec23836fe471203fa670ce8e45f6b0d66eb6d9c00fa452878be6358b9e3a",
+      "ref": "file:///Users/buyi/Documents/bench/.bench/workspaces/loopit-m0-ios/package-lock.json#sha256:2100ec23836fe471203fa670ce8e45f6b0d66eb6d9c00fa452878be6358b9e3a",
+      "role": "Fixed baseline dependency lock",
+      "includeInGoalInputRefs": true,
+      "availability": "local-machine-only"
+    },
+    {
+      "id": "pod-lock",
+      "kind": "file",
+      "path": "/Users/buyi/Documents/bench/.bench/workspaces/loopit-m0-ios/ios/Podfile.lock",
+      "digest": "sha256:82b23dee36e45451e4f2d917da09cf14b82d72772392df83a66cbc7603b61c27",
+      "ref": "file:///Users/buyi/Documents/bench/.bench/workspaces/loopit-m0-ios/ios/Podfile.lock#sha256:82b23dee36e45451e4f2d917da09cf14b82d72772392df83a66cbc7603b61c27",
+      "role": "Baseline lock after the recorded checksum repair",
+      "includeInGoalInputRefs": true,
+      "availability": "local-machine-only"
+    },
+    {
+      "id": "ruby-lock",
+      "kind": "file",
+      "path": "/Users/buyi/Documents/bench/.bench/workspaces/loopit-m0-ios/ios/Gemfile.lock",
+      "digest": "sha256:3780a233132362452dd585808d3c90f6d0489f9c8effdb811ad1682e37e4ef51",
+      "ref": "file:///Users/buyi/Documents/bench/.bench/workspaces/loopit-m0-ios/ios/Gemfile.lock#sha256:3780a233132362452dd585808d3c90f6d0489f9c8effdb811ad1682e37e4ef51",
+      "role": "Fixed Ruby/Bundler dependency lock",
+      "includeInGoalInputRefs": true,
+      "availability": "local-machine-only"
+    },
+    {
+      "id": "baseline-app",
+      "kind": "ios-app-directory",
+      "path": "/Users/buyi/Documents/bench/.bench/m0-fixes/ios-derived-data/Build/Products/ReleaseTest-iphonesimulator/Loopit (Test).app",
+      "digest": "sha256:5ea52ee3cde8666ab9842be6d9c5e46ce763044bb921822bdb1ea5e5736de519",
+      "ref": "file:///Users/buyi/Documents/bench/.bench/m0-fixes/ios-derived-data/Build/Products/ReleaseTest-iphonesimulator/Loopit%20%28Test%29.app#sha256:5ea52ee3cde8666ab9842be6d9c5e46ce763044bb921822bdb1ea5e5736de519",
+      "role": "Built baseline plus checksum repair; not the M1 diagnostics feature",
+      "includeInGoalInputRefs": true,
+      "availability": "local-machine-only",
+      "digestAlgorithm": "ios-app-inventory/1: digestOf(sorted file byte metadata and relative symlinks); not a raw file hash",
+      "inventoryMaterialId": "baseline-app-inventory"
+    },
+    {
+      "id": "ios-preflight-before-correction",
+      "kind": "file",
+      "path": "/Users/buyi/Documents/bench/.bench/m0-fixes/ios-preflight-before-lock-metadata-correction.json",
+      "digest": "sha256:ca2445ad7c63554af4eff02d1c42833d935ff38010b92341995bd608691a6cb1",
+      "ref": "file:///Users/buyi/Documents/bench/.bench/m0-fixes/ios-preflight-before-lock-metadata-correction.json#sha256:ca2445ad7c63554af4eff02d1c42833d935ff38010b92341995bd608691a6cb1",
+      "role": "Original preflight bytes preserved before the Podfile.lock metadata correction",
+      "includeInGoalInputRefs": true,
+      "availability": "local-machine-only"
+    },
+    {
+      "id": "implementation-scope",
+      "kind": "file",
+      "path": "/Users/buyi/Documents/bench/docs/m0/m1-inputs/implementation-scope.json",
+      "digest": "sha256:6672acceaec98830cae64cd977198236966d46467e48d0c54963bd420e82eb82",
+      "ref": "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/implementation-scope.json#sha256:6672acceaec98830cae64cd977198236966d46467e48d0c54963bd420e82eb82",
+      "role": "Frozen-baseline technical file scope and reuse mapping; not executable PolicyRef or user acceptance additions",
+      "includeInGoalInputRefs": true,
+      "availability": "local-machine-only"
+    },
+    {
+      "id": "m1-cost-policy",
+      "kind": "file",
+      "path": "/Users/buyi/Documents/bench/docs/m0/m1-inputs/cost-policy.json",
+      "digest": "sha256:c350cfe87c407bff0e521ef9bd2b3c76afbc9892b4cce7388cc74bd263677f32",
+      "ref": "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/cost-policy.json#sha256:c350cfe87c407bff0e521ef9bd2b3c76afbc9892b4cce7388cc74bd263677f32",
+      "role": "Separate M1 unknown-cost authorization; original M0 deadline unchanged",
+      "includeInGoalInputRefs": true,
+      "availability": "local-machine-only"
+    },
+    {
+      "id": "large-text-rubric",
+      "kind": "file",
+      "path": "/Users/buyi/Documents/bench/docs/m0/m1-inputs/large-text-rubric.json",
+      "digest": "sha256:a11af73382d415a189f595c869c0a42b4444b61ed0696715cceaea3a117892e9",
+      "ref": "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/large-text-rubric.json#sha256:a11af73382d415a189f595c869c0a42b4444b61ed0696715cceaea3a117892e9",
+      "role": "User-confirmed maximal system text-size evaluation mapping; requires protected deployment",
+      "includeInGoalInputRefs": true,
+      "availability": "local-machine-only"
+    },
+    {
+      "id": "execution-policy-preparation",
+      "kind": "file",
+      "path": "/Users/buyi/Documents/bench/docs/m0/m1-inputs/execution-policy.draft.json",
+      "digest": "sha256:bf50e5179dc7d98a44f0edea9e053172ed7f2e02a671a6725b64a7d3efa50b73",
+      "ref": "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/execution-policy.draft.json#sha256:bf50e5179dc7d98a44f0edea9e053172ed7f2e02a671a6725b64a7d3efa50b73",
+      "role": "Version 1 bounded execution rules and intentionally incomplete policy/1 fields; not published or protected",
+      "includeInGoalInputRefs": true,
+      "availability": "prepared-not-protected"
+    },
+    {
+      "id": "diagnostics-fixtures",
+      "kind": "file",
+      "path": "/Users/buyi/Documents/bench/docs/m0/m1-inputs/diagnostics-fixtures.json",
+      "digest": "sha256:fed0adcf8d10d3618b3edd04253a0bc2d9de18b2ebbac104fa91c21a4a7f5037",
+      "ref": "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/diagnostics-fixtures.json#sha256:fed0adcf8d10d3618b3edd04253a0bc2d9de18b2ebbac104fa91c21a4a7f5037",
+      "role": "Version 1 synthetic metadata and privacy-negative fixture data; prepared-not-protected and not executed",
+      "includeInGoalInputRefs": true,
+      "availability": "prepared-not-protected"
+    },
+    {
+      "id": "diagnostics-case-pack",
+      "kind": "file",
+      "path": "/Users/buyi/Documents/bench/docs/m0/m1-inputs/diagnostics-case-pack.json",
+      "digest": "sha256:181743fd5d48b03ca2aac9a3d30627630b982a577bbf96ded7ce26e9fffb7f33",
+      "ref": "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/diagnostics-case-pack.json#sha256:181743fd5d48b03ca2aac9a3d30627630b982a577bbf96ded7ce26e9fffb7f33",
+      "role": "Version 1 diagnostic cases, controls, six-stage IO and cleanup mapping; prepared-not-protected",
+      "includeInGoalInputRefs": true,
+      "availability": "prepared-not-protected"
+    }
+  ],
+  "sourceMetadataNotes": [
+    "Original preflight bytes are preserved as ios-preflight-before-correction. The corrected ios-preflight separates source.baselineDependencyDigests (Podfile.lock bdfb928...) from build.dependencyDigests (prepared Podfile.lock 82b23dee...). build.inputIdentityVerification explicitly records post-build source/lock re-reading, not another build or proof of original build-time capture."
+  ]
+}

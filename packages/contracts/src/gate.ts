@@ -1,7 +1,8 @@
 import { Schema } from "effect"
 import { Digest, Id, NonEmptyString, Ref, Stage, stageIndex, Timestamp, Verdict } from "./common"
-import { type ContractIssue, issue } from "./issue"
+import { type ContractIssue, duplicates, issue } from "./issue"
 import type { GoalSpec } from "./goal"
+import { digestOf } from "./digest"
 
 // execution-contracts.md §2.2. `not_applicable` is a stage disposition, never a
 // fourth way for a criterion to pass.
@@ -49,6 +50,10 @@ export function validateGate(decision: GateDecision, goal: GoalSpec): ContractIs
   if (decision.scope === "stage" && !decision.stage) issues.push(issue("gate_stage_missing", "stage", "Stage gate must name its stage"))
   if (decision.goal.taskId !== goal.taskId || decision.goal.goalRevision !== goal.goalRevision)
     issues.push(issue("gate_wrong_goal", "goal", "Decision targets another goal revision"))
+  if (decision.goal.acceptanceDigest !== digestOf(goal.acceptance))
+    issues.push(issue("gate_wrong_acceptance", "goal.acceptanceDigest", "Decision does not bind to the current acceptance contents"))
+  for (const id of duplicates(decision.results.map((result) => result.criterionId)))
+    issues.push(issue("gate_duplicate_criterion", "results", `Criterion ${id} was judged more than once`))
 
   const inScope = new Set(criteriaInScope(goal, decision.scope, decision.stage).map((item) => item.id))
   const known = new Map(goal.acceptance.map((item) => [item.id, item]))
@@ -72,6 +77,12 @@ export function validateGate(decision: GateDecision, goal: GoalSpec): ContractIs
   })
 
   const covered = new Set(decision.results.map((result) => result.criterionId))
+  for (const id of duplicates(decision.uncovered))
+    issues.push(issue("gate_duplicate_uncovered", "uncovered", `Criterion ${id} is repeated`))
+  for (const id of decision.uncovered) {
+    if (!inScope.has(id)) issues.push(issue("gate_uncovered_unknown", "uncovered", `${id} is not required in this gate scope`))
+    if (covered.has(id)) issues.push(issue("gate_uncovered_judged", "uncovered", `${id} is both judged and uncovered`))
+  }
   const missing = [...inScope].filter((id) => !covered.has(id) && !decision.uncovered.includes(id))
   if (missing.length > 0) issues.push(issue("gate_criteria_unaccounted", "results", `Not judged or listed uncovered: ${missing.join(", ")}`))
 

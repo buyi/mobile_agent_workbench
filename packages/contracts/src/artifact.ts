@@ -2,6 +2,7 @@ import { Schema } from "effect"
 import { Digest, Id, NonEmptyString, NonNegativeInt, PositiveInt, Ref, Sensitivity, Timestamp } from "./common"
 import { type ContractIssue, issue } from "./issue"
 import type { GoalSpec } from "./goal"
+import { digestOf } from "./digest"
 
 // execution-contracts.md §2.1. Artifact = "an output exists"; Evidence = "how that
 // output proves a criterion". Storage location may move; digest and identity do not.
@@ -77,7 +78,7 @@ export function checkEvidenceBinding(evidence: Evidence, binding: EvidenceBindin
   if (evidence.issuer.kind === "builder") at("evidence_untrusted_issuer", "issuer", "Builder output cannot be formal evidence")
   if (evidence.goal.taskId !== binding.goal.taskId || evidence.goal.goalRevision !== binding.goal.goalRevision)
     at("evidence_wrong_goal", "goal", "Evidence belongs to another goal revision")
-  if (evidence.goal.acceptanceDigest !== binding.acceptanceDigest)
+  if (evidence.goal.acceptanceDigest !== binding.acceptanceDigest || binding.acceptanceDigest !== digestOf(binding.goal.acceptance))
     at("evidence_wrong_acceptance", "goal.acceptanceDigest", "Acceptance contract changed since evidence was collected")
   if (evidence.candidateDigest !== binding.candidateDigest)
     at("evidence_stale_candidate", "candidateDigest", "Evidence was collected on another candidate")
@@ -103,11 +104,14 @@ export function checkEvidenceBinding(evidence: Evidence, binding: EvidenceBindin
     const deviceKinds = criterion.evidenceKinds.some((kind) => kind.startsWith("ui-") || kind.includes("install"))
     if (deviceKinds && targets.length > 0) {
       if (!evidence.device) at("evidence_device_missing", "device", `${id} requires device evidence`)
-      else if (!targets.some((t) => t.platform === evidence.device!.platform && t.deviceKind === evidence.device!.deviceKind))
+      else if (!targets.some((t) =>
+        t.platform === evidence.device!.platform && t.deviceKind === evidence.device!.deviceKind &&
+        (!t.deviceRef || t.deviceRef === evidence.device!.deviceIdRef) && (!t.os || t.os === evidence.device!.os),
+      ))
         at(
           "evidence_device_mismatch",
           "device",
-          `${evidence.device.platform}/${evidence.device.deviceKind} does not satisfy ${targets.map((t) => `${t.platform}/${t.deviceKind}`).join(", ")}`,
+          "Observed device identity, platform, kind or OS does not match a frozen target",
         )
     }
   }

@@ -5,31 +5,33 @@
 // human-interventions.json. Exit codes: 0 passed, 1 assertion failed, 2 environment
 // blocked / not runnable, 3 executor error. notRun is never reported as passed.
 import { createHash } from "node:crypto"
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
-import { join } from "node:path"
-import { datasetDigest } from "../packages/contracts/test/fixtures"
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { join, resolve } from "node:path"
 
 const root = join(import.meta.dir, "..")
 
 interface Suite {
   readonly tests?: string
-  readonly dataset?: { readonly id: string; readonly digest: () => string }
+  readonly dataset?: { readonly id: string; readonly digest: () => Promise<string> }
   readonly blocked?: string
 }
 
 const suites: Record<string, Suite> = {
   "contract-core": {
     tests: "./packages/contracts/test",
-    dataset: { id: "contract-core/1", digest: datasetDigest },
+    // Load only after checking setup; a missing dependency must produce a blocked report.
+    dataset: { id: "contract-core/1", digest: async () => (await import("../packages/contracts/test/fixtures")).datasetDigest() },
   },
   "control-plane": { tests: "./packages/delivery/test" },
+  "runtime-local": { tests: "./packages/runtime/test" },
+  "recovery-journal-local": { tests: "./packages/recovery-journal/test" },
   "sandbox-contract":
     process.platform === "darwin"
       ? { tests: "./packages/sandbox/test" }
       : { blocked: "Seatbelt conformance requires a macOS host (run as loopit-worker, see script/macos/setup-worker.sh)" },
-  "runtime-contract": { blocked: "OpenCode Runtime adapter deferred (2026-10-08): using OpenCode's default model configuration for now" },
-  "device-contract": { blocked: "M0-T04 not implemented: no registered device, platform or macOS worker" },
-  recovery: { blocked: "M0-T05/T07 not implemented: no channel policy or independent recovery log" },
+  "runtime-contract": { blocked: "M0-T03 suite aggregation is not implemented: separate deployed reports prove bounded OpenCode delivery, Supervisor UID/process-tree stop, A05 controls and A06 unknown-owner rejection; see docs/m0/control-matrix.md and docs/m0/owner-loss.md. They do not establish general automatic recovery of unknown execution" },
+  "device-contract": { blocked: "M0-T04 incomplete: operator UI probes and a local durable Broker install/reconcile experiment are recorded; OS-exclusive device ownership/revocation and channel binding to a formal Run/Gate remain unverified" },
+  recovery: { blocked: "M0-T05/T07 incomplete: local ledger, separate-process journal and bounded deployed stop/replay/reconcile cases are covered; independent failure-domain authority and OS-exclusive device side-effect control are not established" },
   "autonomy-e2e": { blocked: "M1 suite: requires a frozen M1 GoalSpec" },
   "daily-scenarios": { blocked: "M2 suite" },
   "self-improvement": { blocked: "M3 suite" },
@@ -64,95 +66,112 @@ function write(out: string, files: Record<string, unknown>) {
 }
 
 function parseJunit(xml: string) {
+  // Bun's version is pinned. Require its complete report and reconcile its totals
+  // instead of treating any fragments containing passing testcases as evidence.
+  const header = /<testsuites\b([^>]*)>/.exec(xml)?.[1]
+  if (!header || !xml.trimEnd().endsWith("</testsuites>")) throw new Error("incomplete junit report")
   const cases = [...xml.matchAll(/<testcase\b([^>]*?)(\/>|>([\s\S]*?)<\/testcase>)/g)].map((m) => {
-    const attr = (name: string) => new RegExp(`${name}="([^"]*)"`).exec(m[1])?.[1] ?? ""
+    const attr = (name: string) => new RegExp(`\\b${name}="([^"]*)"`).exec(m[1])?.[1] ?? ""
     const body = m[3] ?? ""
-    const outcome = /<failure|<error/.test(body) ? "failed" : /<skipped/.test(body) ? "notRun" : "passed"
+    const outcome = /<failure\b|<error\b/.test(body) ? "failed" : /<skipped\b/.test(body) ? "notRun" : "passed"
     return { name: attr("name"), classname: attr("classname"), file: attr("file"), seconds: Number(attr("time") || 0), outcome }
   })
+  const total = (name: string) => Number(new RegExp(`\\b${name}="(\\d+)"`).exec(header)?.[1] ?? NaN)
+  if (total("tests") !== cases.length || cases.some((c) => !Number.isFinite(c.seconds)))
+    throw new Error("junit case count or timing is invalid")
+  if (total("failures") !== cases.filter((c) => c.outcome === "failed").length ||
+      total("skipped") !== cases.filter((c) => c.outcome === "notRun").length)
+    throw new Error("junit outcome totals are inconsistent")
+  if (/<error\b/.test(xml) || (Number.isFinite(total("errors")) && total("errors") > 0))
+    throw new Error("junit reports a runner error")
   return cases
 }
+
+type Cases = ReturnType<typeof parseJunit>
+const reportFiles = ["junit.xml", "runner.log", "result.json", "events.jsonl", "artifact-manifest.json", "metrics.json", "human-interventions.json"]
 
 async function verify(suiteName: string, flags: Record<string, string>) {
   const suite = suites[suiteName]
   const started = new Date()
-  const out = flags.out ?? join(root, ".bench", suiteName, started.toISOString().replace(/[:.]/g, "-"))
+  const out = resolve(flags.out ?? join(root, ".bench", suiteName, started.toISOString().replace(/[:.]/g, "-")))
+  mkdirSync(out, { recursive: true })
+  // --out can be reused. Never accept a report or keep a success from an earlier run.
+  for (const file of reportFiles) rmSync(join(out, file), { force: true })
   const base = { suite: suiteName, startedAt: started.toISOString(), environment: environment() }
+  let dataset: { id: string; digest: string } | undefined
+  let cases: Cases = []
+  let log = ""
+  let runner: { exitCode: number | null; signal: string | number | null } | undefined
 
-  if (!suite || suite.blocked) {
-    const reason = suite?.blocked ?? `unknown suite ${suiteName}; known: ${Object.keys(suites).join(", ")}`
+  function finish(exitCode: number, reason?: string) {
+    const count = (o: string) => cases.filter((c) => c.outcome === o).length
+    const verdict = exitCode === 0 ? "passed" : exitCode === 1 ? "failed" : "blocked"
+    const finished = new Date()
     write(out, {
-      "result.json": { ...base, verdict: "blocked", reason, sampleCount: 0, passed: 0, failed: 0, blocked: 0, notRun: 1 },
-      "events.jsonl": "",
-      "artifact-manifest.json": [],
-      "metrics.json": {},
+      "runner.log": log,
+      "result.json": {
+        ...base, finishedAt: finished.toISOString(), dataset, verdict, reason, exitCode,
+        executorError: exitCode === 3, runner, sampleCount: cases.length,
+        passed: count("passed"), failed: count("failed"), blocked: 0, notRun: count("notRun"), cases,
+      },
+      "events.jsonl": [...cases.map((c) => JSON.stringify({ type: "case.finished", ...c })),
+        JSON.stringify({ type: "suite.finished", verdict, exitCode, reason })].join("\n") + "\n",
+      "metrics.json": { durationMs: finished.getTime() - started.getTime(), caseSeconds: cases.reduce((s, c) => s + c.seconds, 0) },
+      // Suites run unattended; any manual step during a run must be appended here by the operator tooling.
       "human-interventions.json": [],
     })
-    console.error(`blocked: ${reason}\n${out}`)
-    return 2
-  }
-  if (flags.dataset && suite.dataset && flags.dataset !== suite.dataset.id) {
-    console.error(`dataset ${flags.dataset} is not the frozen dataset ${suite.dataset.id}`)
-    return 2
-  }
-  if (!existsSync(join(root, "node_modules/@opencode-ai/core"))) {
-    console.error("environment not set up: run `bun install --frozen-lockfile` in vendor/opencode, then `bun script/setup.ts`")
-    return 2
+    write(out, {
+      "artifact-manifest.json": reportFiles.filter((file) => file !== "artifact-manifest.json" && existsSync(join(out, file))).map((file) => ({
+        path: file, digest: `sha256:${createHash("sha256").update(readFileSync(join(out, file))).digest("hex")}`,
+      })),
+    })
+    console.log(`${suiteName}: ${verdict} (${count("passed")} passed, ${count("failed")} failed, ${count("notRun")} notRun)${reason ? `: ${reason}` : ""}\n${out}`)
+    return exitCode
   }
 
+  if (!suite || suite.blocked)
+    return finish(2, suite?.blocked ?? `unknown suite ${suiteName}; known: ${Object.keys(suites).join(", ")}`)
+  if (flags.dataset && flags.dataset !== suite.dataset?.id)
+    return finish(2, `dataset ${flags.dataset} is not the frozen dataset ${suite.dataset?.id ?? "(none)"}`)
+  if (!existsSync(join(root, "node_modules/@opencode-ai/core")))
+    return finish(2, "environment not set up: run `bun install --frozen-lockfile` in vendor/opencode, then `bun script/setup.ts`")
+
   const junit = join(out, "junit.xml")
-  mkdirSync(out, { recursive: true })
-  const proc = Bun.spawnSync([process.execPath, "test", suite.tests!, "--reporter=junit", `--reporter-outfile=${junit}`], {
-    cwd: root,
-    stdout: "pipe",
-    stderr: "pipe",
-  })
-  const log = proc.stdout.toString() + proc.stderr.toString()
-  if (!existsSync(junit)) {
-    write(out, { "runner.log": log })
-    console.error(`executor error: no junit report\n${out}`)
-    return 3
+  try {
+    if (suite.dataset) dataset = { id: suite.dataset.id, digest: await suite.dataset.digest() }
+    const proc = Bun.spawnSync([process.execPath, "test", suite.tests!, "--reporter=junit", `--reporter-outfile=${junit}`], {
+      cwd: root, stdout: "pipe", stderr: "pipe", env: { ...process.env, NO_COLOR: "1", FORCE_COLOR: "0" },
+    })
+    log = proc.stdout.toString() + proc.stderr.toString()
+    runner = { exitCode: proc.exitCode, signal: proc.signalCode ?? null }
+    if (existsSync(junit)) cases = parseJunit(readFileSync(junit, "utf8"))
+    if (proc.signalCode) return finish(3, `test runner terminated by ${proc.signalCode}`)
+    if (!existsSync(junit)) {
+      // Bun emits no JUnit for a successfully discovered but empty test suite.
+      if (proc.exitCode === 0 && /^Ran 0 tests across \d+ files?\./m.test(log)) return finish(2, "no test cases ran")
+      return finish(3, "test runner produced no fresh junit report")
+    }
+    // Bun omits import-time errors from JUnit even though they appear in its
+    // terminal summary. Check both channels, including a mix of assertion and runner errors.
+    if (/^\s*[1-9]\d* errors?\s*$/m.test(log) || /^# Unhandled error between tests\s*$/m.test(log))
+      return finish(3, "test runner reported an unhandled error outside test assertions")
+    const failed = cases.some((c) => c.outcome === "failed")
+    if ((proc.exitCode !== 0 && !(proc.exitCode === 1 && failed)) || (proc.exitCode === 0 && failed))
+      return finish(3, `test runner exit ${proc.exitCode} disagrees with junit outcomes`)
+    if (failed) return finish(1)
+    if (cases.length === 0) return finish(2, "no test cases ran")
+    if (cases.some((c) => c.outcome === "notRun")) return finish(2, "required test cases were skipped")
+    return finish(0)
+  } catch (error) {
+    return finish(3, `executor error: ${error instanceof Error ? error.message : String(error)}`)
   }
-  const cases = parseJunit(readFileSync(junit, "utf8"))
-  const count = (o: string) => cases.filter((c) => c.outcome === o).length
-  const failed = count("failed")
-  const verdict = cases.length === 0 ? "blocked" : failed > 0 ? "failed" : count("notRun") > 0 ? "blocked" : "passed"
-  const finished = new Date()
-  const hash = (file: string) => `sha256:${createHash("sha256").update(readFileSync(file)).digest("hex")}`
-  write(out, {
-    "runner.log": log,
-    "result.json": {
-      ...base,
-      finishedAt: finished.toISOString(),
-      dataset: suite.dataset ? { id: suite.dataset.id, digest: suite.dataset.digest() } : undefined,
-      verdict,
-      sampleCount: cases.length,
-      passed: count("passed"),
-      failed,
-      blocked: 0,
-      notRun: count("notRun"),
-      cases,
-    },
-    "events.jsonl": cases.map((c) => JSON.stringify({ type: "case.finished", ...c })).join("\n") + "\n",
-    "metrics.json": { durationMs: finished.getTime() - started.getTime(), caseSeconds: cases.reduce((s, c) => s + c.seconds, 0) },
-    // Suites run unattended; any manual step during a run must be appended here by the operator tooling.
-    "human-interventions.json": [],
-  })
-  write(out, {
-    "artifact-manifest.json": ["junit.xml", "runner.log", "result.json", "events.jsonl", "metrics.json"].map((file) => ({
-      path: file,
-      digest: hash(join(out, file)),
-    })),
-  })
-  console.log(`${suiteName}: ${verdict} (${count("passed")} passed, ${failed} failed, ${count("notRun")} notRun)\n${out}`)
-  return verdict === "passed" ? 0 : verdict === "failed" ? 1 : 2
 }
 
 const { command, flags } = args()
 if (command === "verify") process.exit(await verify(flags.suite ?? "", flags))
 if (command === "milestone check") {
-  console.error("blocked: milestone checker is M0-T08; M0 cannot pass before T03–T07 and the user's M1 goal exist")
-  process.exit(2)
+  const { milestoneCheck } = await import("./m0/milestone-check")
+  process.exit(await milestoneCheck(flags, { root, environment: environment() }))
 }
-console.error("usage: bench verify --suite <suite> [--dataset <id>] [--out <dir>] | bench milestone check --milestone <M> --manifest <file>")
+console.error("usage: bench verify --suite <suite> [--dataset <id>] [--out <dir>] | bench milestone check --milestone M0 --manifest <file> [--attestation <file> --goal <file> --cost-policy <file> --run-id <id> --trusted-public-key <pem> --verifier-id <id> --verifier-deployment <export-manifest> --artifact-root <dir> --out <new-separate-dir>]")
 process.exit(2)

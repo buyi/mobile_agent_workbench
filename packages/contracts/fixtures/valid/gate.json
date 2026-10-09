@@ -1,6 +1,6 @@
 {
   "schemaVersion": "gate/1", "decisionId": "gate-verify-001", "scope": "stage", "stage": "verification",
-  "goal": { "taskId": "feature-001", "goalRevision": 1, "acceptanceDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+  "goal": { "taskId": "feature-001", "goalRevision": 1, "acceptanceDigest": "sha256:55563cabe536d08b975c10aa5a2fab1fc549b7107acbd277425379fd54263758" },
   "inputEvidenceDigests": ["sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"], "verifier": { "id": "verifier-01", "version": "0.1.0", "signatureRef": "sig://verifier-01/gate-verify-001" },
   "decidedAt": "2026-10-08T10:10:00Z",
   "results": [

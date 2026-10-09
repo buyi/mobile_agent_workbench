@@ -1,0 +1,339 @@
+{
+  "schemaVersion": "m1-diagnostics-case-pack/1",
+  "status": "prepared-not-protected",
+  "deliveryRunAllowed": false,
+  "version": 1,
+  "casePackId": "m1-diagnostics-ios-v1",
+  "executionStatus": "not-run",
+  "goalIdentity": {
+    "projectId": "loopit-mobile",
+    "taskId": "m1-diagnostics-page",
+    "goalRevision": 1
+  },
+  "sourceRevision": "9874bd473cfb3f9603bb580a2085e68983eb98fa",
+  "confirmedInputsRef": "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/confirmed-inputs.json#sha256:29cc6be5df38d07d37fd6704ff50cdb3502e2e7970040371a1ca7aed9fde7149",
+  "policyPreparationRef": "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/execution-policy.draft.json#sha256:bf50e5179dc7d98a44f0edea9e053172ed7f2e02a671a6725b64a7d3efa50b73",
+  "fixtureRef": "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/diagnostics-fixtures.json#sha256:fed0adcf8d10d3618b3edd04253a0bc2d9de18b2ebbac104fa91c21a4a7f5037",
+  "rubricRef": "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/large-text-rubric.json#sha256:a11af73382d415a189f595c869c0a42b4444b61ed0696715cceaea3a117892e9",
+  "userAcceptance": [
+    {
+      "id": "diagnostics-display",
+      "expected": "诊断信息页显示当前版本、build、环境。"
+    },
+    {
+      "id": "diagnostics-copy",
+      "expected": "可以复制版本、build、环境。"
+    },
+    {
+      "id": "diagnostics-no-account-token",
+      "expected": "诊断信息页和复制内容不包含账号或 token。"
+    },
+    {
+      "id": "diagnostics-back",
+      "expected": "诊断信息页支持返回。"
+    },
+    {
+      "id": "diagnostics-large-text",
+      "expected": "诊断信息页支持大字体。"
+    }
+  ],
+  "budgets": {
+    "wallMinutes": 120,
+    "maxRepairCycles": 3,
+    "maxParallelWriters": 1
+  },
+  "observation": {
+    "minutes": 30,
+    "minPathRuns": 10,
+    "minHealthProbes": 10,
+    "healthMapping": "One fresh foreground/liveness observation per complete path; not a separate 30-probe threshold."
+  },
+  "preconditions": [
+    "Formal M0 admission and all execution-policy admission blockers resolved by trusted deployment evidence.",
+    "Freeze the actual Goal/Policy/Case Pack/tool/fixture digests, protected verifier identity, source+prepared patch+dependency pins and one absolute M1 deadline.",
+    "Acquire an exclusive, fenced simulator lease and snapshot its owned installation, power, text-size and isolated fixture clipboard state. Do not treat a known UDID as ownership.",
+    "Have an independently built/inspected candidate .app and frozen no-account UI fixture that can reach settings/diagnostics through the supported route. Do not bypass authentication guards or sign in to make this case runnable.",
+    "Only builder-owned source may change. Verify final diff and append-only architecture registration against the trusted baseline; run trusted gate code, not candidate-modified npm scripts.",
+    "Bind the active JS bundle or OTA identity as well as native app bytes to the candidate/build input artifacts. Unexpected OTA or an unobservable active JS identity blocks reuse and UI acceptance; a matching version label alone is insufficient."
+  ],
+  "cases": [
+    {
+      "id": "D01",
+      "criterionIds": [
+        "diagnostics-display"
+      ],
+      "input": [
+        "Frozen installed app/build receipt",
+        "Pinned field sources and protected synthetic fixtures"
+      ],
+      "steps": [
+        "Independently confirm installed full app identity and foreground state.",
+        "Navigate settings -> diagnostics using a fresh semantic target bound to the current snapshot.",
+        "Read all three labels/values and record page observation."
+      ],
+      "oracle": "Displayed version/build/environment equal the independently expected installed-candidate values; use synthetic metadata cases for module/unit fallback coverage.",
+      "outputs": [
+        "ui-observation",
+        "installed-build-receipt"
+      ],
+      "positiveControl": "native-test with correct independently supplied values",
+      "negativeControl": "Change one expected installed value or use another app digest; mismatch must fail or block, not pass."
+    },
+    {
+      "id": "D02",
+      "criterionIds": [
+        "diagnostics-copy",
+        "diagnostics-no-account-token"
+      ],
+      "input": [
+        "D01 fresh page identity",
+        "Protected field-allowlist fixture",
+        "Frozen copy design decoder",
+        "Isolated fixture clipboard"
+      ],
+      "steps": [
+        "Observe the fixture-owned clipboard pre-state without reading operator clipboard.",
+        "Select the copy control from a current snapshot.",
+        "Independently read the resulting clipboard; inspect page fields and allowed data dependencies."
+      ],
+      "oracle": "Exactly version/build/environment are displayed and copied, matching expected values. No synthetic forbidden value or extra field; no account/session/credential input to the diagnostics presenter.",
+      "outputs": [
+        "clipboard-observation",
+        "ui-observation"
+      ],
+      "positiveControl": "Three allowed fields only",
+      "negativeControl": "Add a synthetic token/account/extra field or keep the old clipboard unchanged; reject even if a success toast appears."
+    },
+    {
+      "id": "D03",
+      "criterionIds": [
+        "diagnostics-back"
+      ],
+      "input": [
+        "D01 installed diagnostics page",
+        "Fresh back control semantic target"
+      ],
+      "steps": [
+        "Observe foreground and snapshot revision.",
+        "Invoke the existing page back action.",
+        "Observe the settings destination through the page identity; do not invoke logout, privacy links or other settings actions."
+      ],
+      "oracle": "Returns to the originating settings page without changing account state. No new navigation UI is required by this test.",
+      "outputs": [
+        "ui-observation"
+      ],
+      "positiveControl": "Observed settings destination",
+      "negativeControl": "No navigation or a different page must fail; app-switch/stale target must block before dispatch."
+    },
+    {
+      "id": "D04",
+      "criterionIds": [
+        "diagnostics-display",
+        "diagnostics-copy",
+        "diagnostics-no-account-token",
+        "diagnostics-back",
+        "diagnostics-large-text"
+      ],
+      "input": [
+        "Protected maximum-text rubric",
+        "Recorded prior content-size category",
+        "D01-D03 inputs"
+      ],
+      "steps": [
+        "Via broker set the system maximum accessibility text category and independently observe actual category.",
+        "Run D01-D03 at that category with fresh UI and clipboard evidence.",
+        "Apply the unchanged large-text rubric, allowing scrolling; preserve screenshot/AX evidence references."
+      ],
+      "oracle": "Use the pinned rubric without inventing pixel, latency, layout or font thresholds.",
+      "outputs": [
+        "ui-observation",
+        "clipboard-observation",
+        "semantic-assessment"
+      ],
+      "positiveControl": "All content readable and actions reachable at observed maximum size",
+      "negativeControl": "Hidden/truncated values, unreachable actions or missing actual font-state proof must not pass."
+    }
+  ],
+  "completePath": {
+    "steps": [
+      "Observe candidate foreground/liveness",
+      "Open settings diagnostics entry",
+      "Display all three fields",
+      "Copy and independently inspect all three fields",
+      "Return to settings"
+    ],
+    "countOnlyWhen": "Every step has a current, candidate-bound successful observation in the same path. Partial paths, retries, stale snapshots and background apps do not count.",
+    "repeat": "Complete at least 10 paths within a full 30-minute installed-candidate observation window, including the maximal-text D04 path. No new frequency threshold is added.",
+    "failure": "Persist any failure and its path/window identity; never overwrite failed history. A changed candidate invalidates its dependent evidence and starts a fresh candidate observation inside the original overall deadline."
+  },
+  "verificationControls": [
+    {
+      "id": "wrong-binding",
+      "condition": "Candidate/build/goal revision/acceptance/tool/fixture or environment identity differs",
+      "expected": "blocked; no reused pass"
+    },
+    {
+      "id": "stale-snapshot",
+      "condition": "Action supplied against an older semantic snapshot revision",
+      "expected": "block before provider dispatch; collect a fresh observation"
+    },
+    {
+      "id": "app-drift",
+      "condition": "Independent foreground state identifies another app before any snapshot that might activate Loopit",
+      "expected": "block before provider dispatch; do not activate as a side effect of observing"
+    },
+    {
+      "id": "missing-observation",
+      "condition": "Clipboard, full install identity, maximal-font state or window sample is missing",
+      "expected": "blocked/inconclusive, never passed"
+    },
+    {
+      "id": "self-report",
+      "condition": "Builder returns a success string or candidate-controlled test report",
+      "expected": "auxiliary only, no formal Gate"
+    },
+    {
+      "id": "protected-test-drift",
+      "condition": "Fixtures, rubric, gate code or trusted test bytes differ from the protected pins",
+      "expected": "block signing and quarantine the verification operation"
+    }
+  ],
+  "evidenceContract": {
+    "artifactSchema": "artifact/1",
+    "evidenceSchema": "evidence/1",
+    "stageResultSchema": "stage-result/1",
+    "gateSchema": "gate/1",
+    "artifactBindingFields": [
+      "projectId",
+      "taskId",
+      "goalRevision",
+      "runId",
+      "stageRunId",
+      "attemptId",
+      "digest",
+      "producer",
+      "inputDigests"
+    ],
+    "evidenceBindingFields": [
+      "goal.taskId",
+      "goal.goalRevision",
+      "goal.acceptanceDigest",
+      "candidateDigest",
+      "buildDigest",
+      "environmentRevision",
+      "toolVersion",
+      "observationWindow",
+      "device.deviceIdRef",
+      "device.os",
+      "device.installedBuildReceipt",
+      "device.fixtureRef"
+    ],
+    "requiredIssuers": [
+      "verifier",
+      "device-broker",
+      "build-agent",
+      "release-agent"
+    ],
+    "builderFormalEvidenceAllowed": false,
+    "rule": "Bind evidence to immutable artifact envelopes for this Run/Attempt. Independently validate current expected identities and freshness; signature alone is not acceptance. UI/clipboard/font observations require a real device context. Use existing schemas and checkEvidenceBinding; do not fabricate these fields during preparation.",
+    "freshness": "Actual Run creation, observation interval and acceptance time must fit the original M1 deadline; no invented extra TTL.",
+    "activeJsBinding": "Record active JS/OTA identity in the immutable install/build observation artifact and its inputDigests. Do not add an invented field to evidence/1 or infer JS identity only from native version/build."
+  },
+  "stages": [
+    {
+      "stage": "requirements",
+      "inputs": [
+        "Frozen GoalSpec and policy",
+        "Pinned baseline/preparation inputs",
+        "Capability matrix"
+      ],
+      "outputs": [
+        "RequirementSpec",
+        "Acceptance mapping",
+        "Constraint requests if inputs conflict",
+        "Validated Plan proposal"
+      ],
+      "shortcut": "Only identical goal/revision/input-bound requirements may be reused; current preparation is not their execution result."
+    },
+    {
+      "stage": "design",
+      "inputs": [
+        "RequirementSpec",
+        "Existing shared screen/header/toast and i18n",
+        "Maximum-text rubric"
+      ],
+      "outputs": [
+        "DesignSpec covering entry, three fields, copy serialization/feedback, back and maximum text",
+        "Verifier-owned decoder description"
+      ],
+      "shortcut": "A new diagnostics page changes UI; do not mark NoDesignChange. Existing components can be reused with rationale."
+    },
+    {
+      "stage": "development",
+      "inputs": [
+        "Approved requirement/design artifacts",
+        "Read-only baseline plus recorded Pod lock patch",
+        "ContextManifest and execution policy"
+      ],
+      "outputs": [
+        "Frozen CandidateManifest",
+        "Exact diff and dependency/build inputs",
+        "Trusted scope/architecture checks and focused unit/lint results"
+      ],
+      "shortcut": "Only an already existing exact matching candidate may be reused; no candidate exists in this preparation."
+    },
+    {
+      "stage": "verification",
+      "inputs": [
+        "Read-only candidate",
+        "Inspected simulator build/install identity",
+        "Protected Case Pack/fixtures/rubric",
+        "Exclusive broker lease"
+      ],
+      "outputs": [
+        "VerificationReport",
+        "ArtifactEnvelope and Evidence per criterion",
+        "Semantic assessment for large text",
+        "Stage GateDecision"
+      ],
+      "shortcut": "Reuse only if candidate/build/goal/fixture/tool/environment/time bindings still match; failures return bounded diagnosis to the model."
+    },
+    {
+      "stage": "release",
+      "inputs": [
+        "Verified candidate/build",
+        "Local channel/environment references",
+        "Pinned restoration baseline and exclusive resource"
+      ],
+      "outputs": [
+        "ReleaseManifest",
+        "Final byte identity",
+        "Local install receipt or proved same installed bytes",
+        "Final smoke evidence"
+      ],
+      "shortcut": "May reuse identical binary build; final local installation identity and smoke cannot be skipped. No TestFlight, store, remote publish or auto-merge."
+    },
+    {
+      "stage": "operations",
+      "inputs": [
+        "Final install identity",
+        "30-minute observation policy",
+        "At least 10 complete paths",
+        "Remaining original budget"
+      ],
+      "outputs": [
+        "ObservationReport",
+        "Cleanup/restoration receipts",
+        "DeliveryReport or explicit failure/unknown package",
+        "Delivery Gate only after all bindings and required outcomes pass"
+      ],
+      "shortcut": "No skip for missing observations or insufficient time. Cleanup success never turns an earlier bad candidate into a passed delivery."
+    }
+  ],
+  "cleanupRef": "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/execution-policy.draft.json#sha256:bf50e5179dc7d98a44f0edea9e053172ed7f2e02a671a6725b64a7d3efa50b73",
+  "limits": [
+    "Prepared local data/methods only; not protected tests, resource registration, device execution, signed evidence or formal Goal freeze.",
+    "Baseline app and old M0 experiments are input references, not M1 feature passes.",
+    "The future runner must implement and independently prove these oracles and negative controls. This Case Pack does not create a second agent/runtime or replace the existing model loop."
+  ]
+}

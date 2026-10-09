@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "m1-diagnostics-rubric/1",
+  "criterionId": "diagnostics-large-text",
+  "version": 1,
+  "userStandard": "在系统最大辅助功能字号下验证诊断信息显示、复制及返回。",
+  "scope": "iOS simulator diagnostics page; no account/token fixtures",
+  "requiredObservations": [
+    "Read and retain the actual system preferred content-size category; it must be the largest accessibility category supported by the frozen OS. Merely setting a command flag is not evidence.",
+    "Observe the installed candidate and diagnostics page with fresh device/Run/build-bound observations and screenshot/accessibility references.",
+    "Version, build and environment labels and values must be readable completely; scrolling is allowed, clipping/overlap/ellipsis that hides content is a failure.",
+    "Copy control remains reachable; clipboard contains exactly the three expected installed-app fields and no other account/token values.",
+    "Back control remains reachable and returns to settings."
+  ],
+  "outcomes": {
+    "passed": "All required observations present, bound to the candidate and maximal size; all five user criteria still hold.",
+    "failed": "Observed clipping, unreadable/overlapping content, unreachable action, wrong clipboard or wrong destination.",
+    "blocked": "Font state, foreground identity, installed bytes, observation or clipboard cannot be independently confirmed."
+  },
+  "cleanup": "Restore the prior simulator content-size setting; failure keeps the resource quarantined.",
+  "provenance": "User standard plus deterministic implementation mapping; not a device result or signed rubric deployment."
+}

@@ -2,3 +2,6 @@
 	path = vendor/opencode
 	url = https://github.com/anomalyco/opencode
 	shallow = true
+[submodule "vendor/mobile-ui-runtime"]
+	path = vendor/mobile-ui-runtime
+	url = https://github.com/buyi/mobile-ui-runtime.git

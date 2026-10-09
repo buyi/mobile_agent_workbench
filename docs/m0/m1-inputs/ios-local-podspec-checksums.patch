@@ -1,0 +1,17 @@
+diff --git a/ios/Podfile.lock b/ios/Podfile.lock
+index eb676771c..141529df3 100644
+--- a/ios/Podfile.lock
++++ b/ios/Podfile.lock
+@@ -3957,10 +3957,10 @@ SPEC CHECKSUMS:
+   MMKV: 86859fdfa2b0b21db1fd6e48788474a6416a2c77
+   MMKVCore: 3d16ce9f7d411e135020915fde98a056859a1efa
+   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
+-  NativeAds: 818c40d431663b5fee1b19b87dd5d5afb72005f8
++  NativeAds: 543a14e509d9a187f591fcf0d0e45a6199330d58
+   NativeAvatarFrame: ac4d83b3afc70c538caa595a8f22a51036d3a5df
+   NativeCrash: 5697e30efef99c5da96f916e3e04cfe453e1de56
+-  NativeFeed: 44d475aedb5d9c59bdfed9f3d023ff0eaf25c3da
++  NativeFeed: 151912eae2a5253927f705f7918f836f943dc8b7
+   NativeGoogleAuth: f4a868503530d376d9c0ab28b2d16c1ab10fcbb8
+   NativeIM: 69c50101469900d447cc1b9a3924ce3cd18b4e06
+   NativeImageBrowser: 9bfd663e81788c9154ff68ebe1bc72bdda7e350d

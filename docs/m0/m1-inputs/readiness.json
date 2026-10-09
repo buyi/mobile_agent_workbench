@@ -1,0 +1,217 @@
+{
+  "schemaVersion": "m1-preparation-report/1",
+  "observedAt": "2026-10-09T12:18:12.762Z",
+  "status": "blocked",
+  "deliveryRunAllowed": false,
+  "scope": "Local input preparation only; not a frozen GoalSpec, resource registration, MilestoneManifest, or GateDecision",
+  "materialChecks": [
+    {
+      "id": "confirmed-inputs",
+      "expectedDigest": "sha256:29cc6be5df38d07d37fd6704ff50cdb3502e2e7970040371a1ca7aed9fde7149",
+      "actualDigest": "sha256:29cc6be5df38d07d37fd6704ff50cdb3502e2e7970040371a1ca7aed9fde7149",
+      "matched": true
+    },
+    {
+      "id": "preparation-patch",
+      "expectedDigest": "sha256:46d6ef18db0b471635c77bd4cdab2dc7feb64ee8abe91282764f8c6107a437f0",
+      "actualDigest": "sha256:46d6ef18db0b471635c77bd4cdab2dc7feb64ee8abe91282764f8c6107a437f0",
+      "matched": true
+    },
+    {
+      "id": "ios-preflight",
+      "expectedDigest": "sha256:0e1ab84eb5728b550a033f6a4d0deb4eeece6cf90676b3374c56d7d53e60f08d",
+      "actualDigest": "sha256:0e1ab84eb5728b550a033f6a4d0deb4eeece6cf90676b3374c56d7d53e60f08d",
+      "matched": true
+    },
+    {
+      "id": "baseline-app-inventory",
+      "expectedDigest": "sha256:7d1364bb016a1d9f1bfe179473fa347a6642d3d8be35feb0548201863443fa3f",
+      "actualDigest": "sha256:7d1364bb016a1d9f1bfe179473fa347a6642d3d8be35feb0548201863443fa3f",
+      "matched": true
+    },
+    {
+      "id": "ios-install-probe",
+      "expectedDigest": "sha256:1e4a97aa74ca45d89f376358f7a94e92a3fedc3d8257d902ba756233ddb06175",
+      "actualDigest": "sha256:1e4a97aa74ca45d89f376358f7a94e92a3fedc3d8257d902ba756233ddb06175",
+      "matched": true
+    },
+    {
+      "id": "ios-ui-summary",
+      "expectedDigest": "sha256:6e963a2cd433808580bca7285e53e1ba71585edcfb200d30e84fbbd839bab6db",
+      "actualDigest": "sha256:6e963a2cd433808580bca7285e53e1ba71585edcfb200d30e84fbbd839bab6db",
+      "matched": true
+    },
+    {
+      "id": "ios-foreground-summary",
+      "expectedDigest": "sha256:2a887d311cfa349f7786f10df16f97c448f5dc150bf01b0ced9be2571a089d0a",
+      "actualDigest": "sha256:2a887d311cfa349f7786f10df16f97c448f5dc150bf01b0ced9be2571a089d0a",
+      "matched": true
+    },
+    {
+      "id": "ios-owned-process-cleanup",
+      "expectedDigest": "sha256:295d35ed6e1f3211938af16a2435f3c2aee62bb54ee4664ab0b39132d426b2ec",
+      "actualDigest": "sha256:295d35ed6e1f3211938af16a2435f3c2aee62bb54ee4664ab0b39132d426b2ec",
+      "matched": true
+    },
+    {
+      "id": "m0-cost-policy",
+      "expectedDigest": "sha256:c350cfe87c407bff0e521ef9bd2b3c76afbc9892b4cce7388cc74bd263677f32",
+      "actualDigest": "sha256:c350cfe87c407bff0e521ef9bd2b3c76afbc9892b4cce7388cc74bd263677f32",
+      "matched": true
+    },
+    {
+      "id": "goal-schema",
+      "expectedDigest": "sha256:1e232b8954d28bb22fd02aabbc3d8fb6aaf14d4c054297600b84fb6646def785",
+      "actualDigest": "sha256:1e232b8954d28bb22fd02aabbc3d8fb6aaf14d4c054297600b84fb6646def785",
+      "matched": true
+    },
+    {
+      "id": "package-lock",
+      "expectedDigest": "sha256:2100ec23836fe471203fa670ce8e45f6b0d66eb6d9c00fa452878be6358b9e3a",
+      "actualDigest": "sha256:2100ec23836fe471203fa670ce8e45f6b0d66eb6d9c00fa452878be6358b9e3a",
+      "matched": true
+    },
+    {
+      "id": "pod-lock",
+      "expectedDigest": "sha256:82b23dee36e45451e4f2d917da09cf14b82d72772392df83a66cbc7603b61c27",
+      "actualDigest": "sha256:82b23dee36e45451e4f2d917da09cf14b82d72772392df83a66cbc7603b61c27",
+      "matched": true
+    },
+    {
+      "id": "ruby-lock",
+      "expectedDigest": "sha256:3780a233132362452dd585808d3c90f6d0489f9c8effdb811ad1682e37e4ef51",
+      "actualDigest": "sha256:3780a233132362452dd585808d3c90f6d0489f9c8effdb811ad1682e37e4ef51",
+      "matched": true
+    },
+    {
+      "id": "baseline-app",
+      "expectedDigest": "sha256:5ea52ee3cde8666ab9842be6d9c5e46ce763044bb921822bdb1ea5e5736de519",
+      "actualDigest": "sha256:5ea52ee3cde8666ab9842be6d9c5e46ce763044bb921822bdb1ea5e5736de519",
+      "matched": true
+    },
+    {
+      "id": "ios-preflight-before-correction",
+      "expectedDigest": "sha256:ca2445ad7c63554af4eff02d1c42833d935ff38010b92341995bd608691a6cb1",
+      "actualDigest": "sha256:ca2445ad7c63554af4eff02d1c42833d935ff38010b92341995bd608691a6cb1",
+      "matched": true
+    },
+    {
+      "id": "implementation-scope",
+      "expectedDigest": "sha256:6672acceaec98830cae64cd977198236966d46467e48d0c54963bd420e82eb82",
+      "actualDigest": "sha256:6672acceaec98830cae64cd977198236966d46467e48d0c54963bd420e82eb82",
+      "matched": true
+    },
+    {
+      "id": "m1-cost-policy",
+      "expectedDigest": "sha256:c350cfe87c407bff0e521ef9bd2b3c76afbc9892b4cce7388cc74bd263677f32",
+      "actualDigest": "sha256:c350cfe87c407bff0e521ef9bd2b3c76afbc9892b4cce7388cc74bd263677f32",
+      "matched": true
+    },
+    {
+      "id": "large-text-rubric",
+      "expectedDigest": "sha256:a11af73382d415a189f595c869c0a42b4444b61ed0696715cceaea3a117892e9",
+      "actualDigest": "sha256:a11af73382d415a189f595c869c0a42b4444b61ed0696715cceaea3a117892e9",
+      "matched": true
+    },
+    {
+      "id": "execution-policy-preparation",
+      "expectedDigest": "sha256:bf50e5179dc7d98a44f0edea9e053172ed7f2e02a671a6725b64a7d3efa50b73",
+      "actualDigest": "sha256:bf50e5179dc7d98a44f0edea9e053172ed7f2e02a671a6725b64a7d3efa50b73",
+      "matched": true
+    },
+    {
+      "id": "diagnostics-fixtures",
+      "expectedDigest": "sha256:fed0adcf8d10d3618b3edd04253a0bc2d9de18b2ebbac104fa91c21a4a7f5037",
+      "actualDigest": "sha256:fed0adcf8d10d3618b3edd04253a0bc2d9de18b2ebbac104fa91c21a4a7f5037",
+      "matched": true
+    },
+    {
+      "id": "diagnostics-case-pack",
+      "expectedDigest": "sha256:181743fd5d48b03ca2aac9a3d30627630b982a577bbf96ded7ce26e9fffb7f33",
+      "actualDigest": "sha256:181743fd5d48b03ca2aac9a3d30627630b982a577bbf96ded7ce26e9fffb7f33",
+      "matched": true
+    }
+  ],
+  "sourceCheck": {
+    "revision": "9874bd473cfb3f9603bb580a2085e68983eb98fa",
+    "changedFiles": " M ios/Podfile.lock\n",
+    "diffDigest": "sha256:46d6ef18db0b471635c77bd4cdab2dc7feb64ee8abe91282764f8c6107a437f0",
+    "matched": true
+  },
+  "sourceMetadataNotes": [
+    "Original preflight bytes are preserved as ios-preflight-before-correction. The corrected ios-preflight separates source.baselineDependencyDigests (Podfile.lock bdfb928...) from build.dependencyDigests (prepared Podfile.lock 82b23dee...). build.inputIdentityVerification explicitly records post-build source/lock re-reading, not another build or proof of original build-time capture."
+  ],
+  "inputRefsMatch": true,
+  "unchangedUserExpectations": true,
+  "implementationScopeMatches": true,
+  "casePackCheck": {
+    "valid": true,
+    "issues": [],
+    "formalPolicyAccepted": false,
+    "deliveryRunAllowed": false
+  },
+  "formalGoalSchema": {
+    "accepted": false,
+    "issues": [
+      {
+        "code": "schema_invalid",
+        "path": "",
+        "message": "SchemaError(Missing key\n  at [\"policyRef\"])"
+      }
+    ]
+  },
+  "unresolved": [
+    {
+      "id": "execution-policy",
+      "fields": [
+        "policyRef",
+        "resources.secretRefs"
+      ],
+      "owner": "implementation",
+      "reason": "已准备版本 1 操作边界及 policy/1 已知字段；仍缺固定工具/网络出口、worker/凭据句柄、保留策略与受保护发布。草案未填写无法证实的 digest 或资源引用，不能执行。"
+    },
+    {
+      "id": "device-broker",
+      "fields": [
+        "targetMatrix[0].deviceRef"
+      ],
+      "owner": "implementation",
+      "reason": "有专用模拟器和局部工具证据，尚无正式 Broker 注册描述、独占/fencing 与可核验资源句柄。"
+    },
+    {
+      "id": "protected-fixture",
+      "fields": [
+        "resources.fixtureRefs"
+      ],
+      "owner": "implementation",
+      "reason": "已准备真实摘要固定的合成 fixture、诊断 Case Pack、正反例映射和大字体 rubric；尚未 root 保护/安装，独立 Runner、无真实账号的页面入口及设备 clipboard 隔离仍未建立。"
+    },
+    {
+      "id": "delivery-connectors",
+      "fields": [
+        "delivery.channelRef",
+        "delivery.environmentRef"
+      ],
+      "owner": "implementation",
+      "reason": "本机 .app 终点已确认；仍需固定本机渠道/环境描述与安装、核验、卸载或恢复执行器，不引入 TestFlight 或远端发布。"
+    },
+    {
+      "id": "m0-entry-gate",
+      "fields": [],
+      "owner": "implementation",
+      "reason": "M0 总体尚未通过；RecoveryJournal 的本机进程/离线 SSH transport 不证明独立故障域或远端认证。局部成功不能替代 M0 准入 Gate。"
+    }
+  ],
+  "budgetScope": {
+    "m0ExperimentAlreadyConfirmed": true,
+    "m1CompleteBudgetConfirmed": true,
+    "m0BudgetCopiedIntoM1": false
+  },
+  "limitations": [
+    "Missing required GoalSpec fields are intentional. No placeholder digest or zero-cost budget has been substituted.",
+    "Only local files and source metadata were rechecked. Device state and earlier operator experiment results remain historical evidence.",
+    "The baseline app is not the M1 feature candidate; a byte match proves material identity, not feature acceptance.",
+    "The report cannot authorize delivery even if the structural schema later parses. Freeze the missing decisions and resources separately.",
+    "Version 1 policy/fixtures/Case Pack are prepared-not-protected. Synthetic test inputs are not executed tests, device access or independent evidence."
+  ]
+}

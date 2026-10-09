@@ -1,0 +1,139 @@
+--- a/dist/apple/runner/AgentDeviceRunner/AgentDeviceRunnerUITests/RunnerTests+Models.swift
++++ b/dist/apple/runner/AgentDeviceRunner/AgentDeviceRunnerUITests/RunnerTests+Models.swift
+@@ -33,6 +33,7 @@
+   case recordStop
+   case status
+   case uptime
++  case loopitAppStates
+   case activate
+   case terminate
+   case targetReset
+@@ -97,7 +98,7 @@
+     case .recordStop, .uptime, .terminate, .targetReset, .shutdown:
+       return CommandTraits(isInteraction: false, readOnly: .never, isLifecycle: true)
+ 
+-    case .status:
++    case .status, .loopitAppStates:
+       return CommandTraits(isInteraction: false, readOnly: .always, isLifecycle: true)
+ 
+ 
+@@ -116,6 +117,7 @@
+   let commandId: String?
+   let statusCommandId: String?
+   let appBundleId: String?
++  let queryBundleIds: [String]?
+   let text: String?
+   let selectorKey: String?
+   let selectorValue: String?
+@@ -231,7 +233,23 @@
+   }
+ }
+ 
++struct LoopitAppStateEntry: Codable {
++  let bundleId: String
++  let rawState: UInt
++  let state: String
++}
++
++struct LoopitAppStateObservation: Codable {
++  let schemaVersion: String
++  let nonce: String
++  let deviceUdid: String
++  let startedUptimeMs: Double
++  let finishedUptimeMs: Double
++  let entries: [LoopitAppStateEntry]
++}
++
+ struct DataPayload: Codable {
++  var loopitAppStates: LoopitAppStateObservation?
+   var message: String?
+   var imageBase64: String?
+   var text: String?
+--- a/dist/apple/runner/AgentDeviceRunner/AgentDeviceRunnerUITests/RunnerTests+CommandExecution.swift
++++ b/dist/apple/runner/AgentDeviceRunner/AgentDeviceRunnerUITests/RunnerTests+CommandExecution.swift
+@@ -1069,6 +1069,30 @@
+     if let unavailable = runnerUnavailableResponse(command: command) {
+       return unavailable
+     }
++    // Loopit-owned read adapter. Deliberately bypasses ALL activation,
++    // snapshot, cached-target and recovery paths below. The existing serial
++    // command queue and bounded main-thread execution are still used.
++    if command.command == .loopitAppStates {
++      return try runMainThreadWork(
++        timeout: 2,
++        timeoutError: mainThreadExecutionTimeoutError
++      ) {
++        var response: Response?
++        let failuresBefore = self.currentXCTestFailureCount()
++        let exception = RunnerObjCExceptionCatcher.catchException {
++          response = self.executeLoopitAppStates(command: command)
++        }
++        if let exception {
++          return Response(ok: false, error: ErrorPayload(
++            code: "STATE_OBSERVATION_FAILED", message: exception))
++        }
++        guard !self.didRecordXCTestFailure(since: failuresBefore), let response else {
++          return Response(ok: false, error: ErrorPayload(
++            code: "STATE_OBSERVATION_FAILED", message: "XCTest did not complete a clean state observation"))
++        }
++        return response
++      }
++    }
+     let alertDeadline = command.command == .alert
+       ? Date().addingTimeInterval(Self.alertCommandTimeout(timeoutMs: command.timeoutMs))
+       : nil
+@@ -1108,6 +1132,34 @@
+     ) {
+       try self.executeOnMainSafely(command: command, routeToSpringboard: routeToSpringboard)
+     }
++  }
++
++  // XCUIApplication.state is a passively updated, asynchronous observation.
++  // This is NOT an atomic OS foreground oracle. The caller waits for two
++  // stable samples and fails closed on unknown states or elapsed deadlines.
++  private func executeLoopitAppStates(command: Command) -> Response {
++    guard let nonce = command.commandId, !nonce.isEmpty, nonce.count <= 128,
++          let ids = command.queryBundleIds, !ids.isEmpty, ids.count <= 8,
++          Set(ids).count == ids.count,
++          ids.allSatisfy({ $0.range(of: "^[A-Za-z0-9][A-Za-z0-9.-]{1,254}$", options: .regularExpression) != nil }),
++          let udid = ProcessInfo.processInfo.environment["SIMULATOR_UDID"], !udid.isEmpty else {
++      return Response(ok: false, error: ErrorPayload(
++        code: "INVALID_ARGS", message: "state observation requires a nonce, simulator identity and 1-8 unique bundle ids"))
++    }
++    let started = currentUptimeMs()
++    let names = ["unknown", "not_running", "background_suspended", "background", "foreground"]
++    let entries = ids.map { bundleId -> LoopitAppStateEntry in
++      // Construct a proxy and read its state. NEVER launch, activate, terminate,
++      // waitForExistence, resolve the cached target, or capture an AX tree here.
++      let raw = XCUIApplication(bundleIdentifier: bundleId).state.rawValue
++      return LoopitAppStateEntry(bundleId: bundleId, rawState: raw,
++        state: raw < UInt(names.count) ? names[Int(raw)] : "unknown")
++    }
++    NSLog("LOOPIT_APP_STATES nonce=%@ states=%@", nonce,
++      entries.map { "\($0.bundleId)=\($0.rawState)" }.joined(separator: ","))
++    return Response(ok: true, data: DataPayload(loopitAppStates: LoopitAppStateObservation(
++      schemaVersion: "loopit-ios-state/1", nonce: nonce, deviceUdid: udid,
++      startedUptimeMs: started, finishedUptimeMs: currentUptimeMs(), entries: entries)))
+   }
+ 
+   func runMainThreadWork<T>(
+@@ -1696,7 +1748,7 @@
+       clearRememberedTextEntryTap()
+     }
+     switch command.command {
+-    case .status, .activate, .terminate, .targetReset, .shutdown, .recordStart, .recordStop, .uptime:
++    case .status, .activate, .terminate, .targetReset, .shutdown, .recordStart, .recordStop, .uptime, .loopitAppStates:
+       return Response(
+         ok: false,
+         error: ErrorPayload(
+--- a/dist/apple/runner/AgentDeviceRunner/AgentDeviceRunnerUITests/RunnerTests+CommandJournal.swift
++++ b/dist/apple/runner/AgentDeviceRunner/AgentDeviceRunnerUITests/RunnerTests+CommandJournal.swift
+@@ -139,7 +139,7 @@
+          .remotePress, .type, .swipe, .scroll, .desktopScroll, .findText, .querySelector, .readText, .back,
+          .backInApp, .backSystem, .home, .rotate, .appSwitcher, .keyboardDismiss, .keyboardReturn,
+          .alert, .sequence, .gesture, .gestureViewport, .recordStart, .recordStop,
+-         .status, .uptime, .activate, .terminate, .targetReset, .shutdown:
++         .status, .uptime, .activate, .terminate, .targetReset, .shutdown, .loopitAppStates:
+       return true
+     }
+   }

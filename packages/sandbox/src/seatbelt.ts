@@ -1,11 +1,13 @@
-import { existsSync } from "node:fs"
+import { existsSync, realpathSync, statSync } from "node:fs"
 import { userInfo } from "node:os"
 import { digestOf } from "@loopit/contracts"
 import { assertPolicy, type SandboxBackend, type SandboxCapabilities, type SandboxPolicy, SandboxPolicyError } from "./contract"
+import { runProcess } from "./process"
+import { inspectWorkerAccount } from "./worker-account"
 
 // macOS backend: Seatbelt (`sandbox-exec`) confines writes, network and IPC; the
-// dedicated low-privilege account (script/macos/setup-worker.sh) keeps the operator's
-// files and keychains out of reach by Unix permissions as a second, independent layer.
+// dedicated low-privilege account adds a separate boundary only after the actual
+// protected paths and account permissions have been verified on the host.
 
 export const SANDBOX_EXEC = "/usr/bin/sandbox-exec"
 export const DEFAULT_WORKER_USER = "loopit-worker"
@@ -20,16 +22,24 @@ const MACH_SERVICES = [
   "com.apple.trustd.agent",
 ]
 
-/** macOS reports /tmp, /var and /etc through /private; Seatbelt matches resolved paths. */
+/** Resolve every symlink on this host. Policy roots must already exist as directories. */
 export function canonical(path: string) {
-  return /^\/(tmp|var|etc)(\/|$)/.test(path) ? `/private${path}` : path
+  try {
+    const resolved = realpathSync(path)
+    if (!statSync(resolved).isDirectory()) throw new Error("not a directory")
+    return resolved
+  } catch (error) {
+    throw new SandboxPolicyError(`Sandbox directory cannot be resolved: ${path}: ${String(error)}`)
+  }
 }
 
 export function profile(policy: SandboxPolicy) {
   assertPolicy(policy)
-  const params: Record<string, string> = { WORKDIR: canonical(policy.workdir) }
-  policy.writable.forEach((path, i) => (params[`WRITABLE_${i}`] = canonical(path)))
-  policy.denyRead.forEach((path, i) => (params[`DENY_${i}`] = canonical(path)))
+  const resolved = { ...policy, workdir: canonical(policy.workdir), writable: policy.writable.map(canonical), denyRead: policy.denyRead.map(canonical) }
+  assertPolicy(resolved)
+  const params: Record<string, string> = { WORKDIR: resolved.workdir }
+  resolved.writable.forEach((path, i) => (params[`WRITABLE_${i}`] = path))
+  resolved.denyRead.forEach((path, i) => (params[`DENY_${i}`] = path))
   const subpaths = (prefix: string) =>
     Object.keys(params)
       .filter((key) => key.startsWith(prefix))
@@ -78,12 +88,13 @@ export const seatbelt = (options: { workerUser?: string } = {}): SandboxBackend 
       const runAsUser = userInfo().username
       let available = process.platform === "darwin" && existsSync(SANDBOX_EXEC)
       if (available) {
-        const smoke = Bun.spawnSync([SANDBOX_EXEC, "-p", "(version 1)(allow default)", "/usr/bin/true"])
-        available = smoke.exitCode === 0
-        if (!available) notes.push(`sandbox-exec smoke test failed: ${smoke.stderr.toString().trim()}`)
+        const smoke = await runProcess([SANDBOX_EXEC, "-p", "(version 1)(allow default)", "/usr/bin/true"])
+        available = smoke.code === 0 && !smoke.timedOut && !smoke.error
+        if (!available) notes.push(`sandbox-exec smoke blocked: ${smoke.timedOut ? "timeout" : smoke.error ?? smoke.stderr.trim()}`)
       } else notes.push(`sandbox-exec unavailable on ${process.platform}`)
-      const dedicatedUser = runAsUser === workerUser
-      if (!dedicatedUser) notes.push(`running as ${runAsUser}, not the dedicated account ${workerUser}; user isolation absent`)
+      const account = await inspectWorkerAccount(workerUser)
+      const dedicatedUser = account.valid
+      notes.push(...account.notes)
       notes.push("statuses stay unverified until `bench verify --suite sandbox-contract` passes on this host")
       return {
         backend: "seatbelt",

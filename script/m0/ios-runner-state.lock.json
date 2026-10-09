@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "loopit-ios-runner-patch/1",
+  "upstream": {
+    "package": "agent-device",
+    "version": "0.21.1",
+    "packageJsonSha256": "27333dadea7efd10eb78b834caf5d58e63fdf4c45a383d72364316e88b0da84e"
+  },
+  "patchSha256": "22a86f5abebf7ccc82ac014938de9c02254a9d486a30b66d7ee2bd65cac2cb4a",
+  "files": [
+    {
+      "path": "dist/apple/runner/AgentDeviceRunner/AgentDeviceRunnerUITests/RunnerTests+Models.swift",
+      "upstreamSha256": "8b3fd582d2a12ddaeef34c634bd4472777018c4338532c7b9de1e2757bc86257",
+      "patchedSha256": "d6593d5630c71676f45061b81bd24cd4274a76bb9238b0b2e36effa21c953948"
+    },
+    {
+      "path": "dist/apple/runner/AgentDeviceRunner/AgentDeviceRunnerUITests/RunnerTests+CommandExecution.swift",
+      "upstreamSha256": "7db65763bd34077f93c7d9cbc0416e849aadf4ef950b0f43744942d36a278364",
+      "patchedSha256": "d4850b2d9e82aa912c007627cb80e46c85d8493e18d406f899c42fc3b5c89583"
+    },
+    {
+      "path": "dist/apple/runner/AgentDeviceRunner/AgentDeviceRunnerUITests/RunnerTests+CommandJournal.swift",
+      "upstreamSha256": "e43345391d07c1a6160fe717ec7b1c98f00912f9fba7498fa1da0f6d9ca24fc4",
+      "patchedSha256": "0ab2de1d5b760db9ecb842452df2361e32a7a07401b683951655314ca11965cb"
+    }
+  ],
+  "scope": "Read-only per-bundle asynchronous XCTest state query; not an atomic foreground oracle, Broker or Agent."
+}

@@ -3,3 +3,7 @@ node_modules/
 *.db-wal
 *.db-shm
 .bench/
+.codegraph/
+__pycache__/
+*.pyc
+!packages/runtime/README.md

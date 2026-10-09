@@ -11,7 +11,7 @@ export interface SandboxPolicy {
   readonly writable: ReadonlyArray<string>
   /** Never readable even though general reads are allowed (operator home, keychains, other attempts). */
   readonly denyRead: ReadonlyArray<string>
-  /** `none` blocks all sockets except local IPC; `proxy` allows only the egress proxy on localhost. */
+  /** `none` blocks network sockets; `proxy` allows only the egress proxy on localhost. */
   readonly network: { readonly mode: "none" } | { readonly mode: "proxy"; readonly port: number }
   /** The complete environment of the command; nothing is inherited from the Worker. */
   readonly env: Readonly<Record<string, string>>
@@ -29,7 +29,7 @@ export interface SandboxCapabilities {
   readonly platform: string
   readonly available: boolean
   readonly runAsUser: string
-  /** Whether the Worker runs as its dedicated account rather than the operator. */
+  /** Whether current UID and verified service-account attributes match the configured Worker. Not proof of file isolation. */
   readonly dedicatedUser: boolean
   readonly filesystemWrite: CapabilityStatus
   readonly filesystemRead: CapabilityStatus
@@ -51,10 +51,10 @@ export class SandboxPolicyError extends Error {}
 export function assertPolicy(policy: SandboxPolicy) {
   const paths = [policy.workdir, ...policy.writable, ...policy.denyRead]
   for (const path of paths)
-    if (!path.startsWith("/") || path.includes("\0") || /(^|\/)\.\.(\/|$)/.test(path))
+    if (!path.startsWith("/") || path.includes("\0") || /(^|\/)\.{1,2}(\/|$)/.test(path) || path.includes("//") || (path.length > 1 && path.endsWith("/")))
       throw new SandboxPolicyError(`Sandbox paths must be absolute and normalized: ${path}`)
   for (const path of [policy.workdir, ...policy.writable])
-    if (policy.denyRead.some((denied) => path === denied || path.startsWith(`${denied}/`)))
+    if (policy.denyRead.some((denied) => path === denied || denied === "/" || path.startsWith(`${denied}/`) || path === "/" || denied.startsWith(`${path}/`)))
       throw new SandboxPolicyError(`Writable path ${path} lies inside a denied path`)
   if (policy.network.mode === "proxy" && !(Number.isInteger(policy.network.port) && policy.network.port > 0 && policy.network.port < 65536))
     throw new SandboxPolicyError(`Invalid proxy port ${policy.network.port}`)

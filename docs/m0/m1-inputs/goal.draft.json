@@ -1,0 +1,145 @@
+{
+  "schemaVersion": "goal/1",
+  "projectId": "loopit-mobile",
+  "taskId": "m1-diagnostics-page",
+  "goalRevision": 1,
+  "objective": "在现有 Loopit 中实现诊断信息页。",
+  "scope": {
+    "repositoryRef": "file:///Users/buyi/yongyue/leap_loopit_rn",
+    "baseRevision": "9874bd473cfb3f9603bb580a2085e68983eb98fa",
+    "allowedPaths": [
+      "app/settings.tsx",
+      "app/_layout.tsx",
+      "app/diagnostics.tsx",
+      "src/pages/diagnostics/**",
+      "src/features/i18n/dictionaries/en.ts",
+      "src/features/i18n/dictionaries/es.ts",
+      "src/features/i18n/dictionaries/id.ts",
+      "src/features/i18n/dictionaries/pt.ts",
+      "scripts/architecture/managed-slices.json",
+      "scripts/architecture/legacy-bridges.json"
+    ],
+    "inputRefs": [
+      "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/confirmed-inputs.json#sha256:29cc6be5df38d07d37fd6704ff50cdb3502e2e7970040371a1ca7aed9fde7149",
+      "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/ios-local-podspec-checksums.patch#sha256:46d6ef18db0b471635c77bd4cdab2dc7feb64ee8abe91282764f8c6107a437f0",
+      "file:///Users/buyi/Documents/bench/.bench/m0-fixes/ios-preflight.json#sha256:0e1ab84eb5728b550a033f6a4d0deb4eeece6cf90676b3374c56d7d53e60f08d",
+      "file:///Users/buyi/Documents/bench/.bench/m0-fixes/ios-simulator-install-v2/build-inventory.json#sha256:7d1364bb016a1d9f1bfe179473fa347a6642d3d8be35feb0548201863443fa3f",
+      "file:///Users/buyi/Documents/bench/.bench/m0-fixes/ios-simulator-install-v2/result.json#sha256:1e4a97aa74ca45d89f376358f7a94e92a3fedc3d8257d902ba756233ddb06175",
+      "file:///Users/buyi/Documents/bench/.bench/m0-fixes/ios-ui/summary.json#sha256:6e963a2cd433808580bca7285e53e1ba71585edcfb200d30e84fbbd839bab6db",
+      "file:///Users/buyi/Documents/bench/.bench/m0-fixes/ios-foreground/summary.json#sha256:2a887d311cfa349f7786f10df16f97c448f5dc150bf01b0ced9be2571a089d0a",
+      "file:///Users/buyi/Documents/bench/.bench/m0-fixes/ios-foreground/owned-process-cleanup.json#sha256:295d35ed6e1f3211938af16a2435f3c2aee62bb54ee4664ab0b39132d426b2ec",
+      "file:///Users/buyi/Documents/bench/.bench/workspaces/loopit-m0-ios/package-lock.json#sha256:2100ec23836fe471203fa670ce8e45f6b0d66eb6d9c00fa452878be6358b9e3a",
+      "file:///Users/buyi/Documents/bench/.bench/workspaces/loopit-m0-ios/ios/Podfile.lock#sha256:82b23dee36e45451e4f2d917da09cf14b82d72772392df83a66cbc7603b61c27",
+      "file:///Users/buyi/Documents/bench/.bench/workspaces/loopit-m0-ios/ios/Gemfile.lock#sha256:3780a233132362452dd585808d3c90f6d0489f9c8effdb811ad1682e37e4ef51",
+      "file:///Users/buyi/Documents/bench/.bench/m0-fixes/ios-derived-data/Build/Products/ReleaseTest-iphonesimulator/Loopit%20%28Test%29.app#sha256:5ea52ee3cde8666ab9842be6d9c5e46ce763044bb921822bdb1ea5e5736de519",
+      "file:///Users/buyi/Documents/bench/.bench/m0-fixes/ios-preflight-before-lock-metadata-correction.json#sha256:ca2445ad7c63554af4eff02d1c42833d935ff38010b92341995bd608691a6cb1",
+      "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/implementation-scope.json#sha256:6672acceaec98830cae64cd977198236966d46467e48d0c54963bd420e82eb82",
+      "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/cost-policy.json#sha256:c350cfe87c407bff0e521ef9bd2b3c76afbc9892b4cce7388cc74bd263677f32",
+      "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/large-text-rubric.json#sha256:a11af73382d415a189f595c869c0a42b4444b61ed0696715cceaea3a117892e9",
+      "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/execution-policy.draft.json#sha256:bf50e5179dc7d98a44f0edea9e053172ed7f2e02a671a6725b64a7d3efa50b73",
+      "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/diagnostics-fixtures.json#sha256:fed0adcf8d10d3618b3edd04253a0bc2d9de18b2ebbac104fa91c21a4a7f5037",
+      "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/diagnostics-case-pack.json#sha256:181743fd5d48b03ca2aac9a3d30627630b982a577bbf96ded7ce26e9fffb7f33"
+    ],
+    "excluded": [
+      "新增账号或 token 信息的展示、复制",
+      "修改与诊断信息页无关的业务行为",
+      "扩大到 Android、物理设备或远端发布"
+    ]
+  },
+  "acceptance": [
+    {
+      "id": "diagnostics-display",
+      "expected": "诊断信息页显示当前版本、build、环境。",
+      "verification": "executable",
+      "evidenceKinds": [
+        "ui-observation",
+        "installed-build-receipt"
+      ],
+      "requiredAtStage": "verification",
+      "platforms": [
+        "ios"
+      ]
+    },
+    {
+      "id": "diagnostics-copy",
+      "expected": "可以复制版本、build、环境。",
+      "verification": "executable",
+      "evidenceKinds": [
+        "clipboard-observation",
+        "ui-observation"
+      ],
+      "requiredAtStage": "verification",
+      "platforms": [
+        "ios"
+      ]
+    },
+    {
+      "id": "diagnostics-no-account-token",
+      "expected": "诊断信息页和复制内容不包含账号或 token。",
+      "verification": "executable",
+      "evidenceKinds": [
+        "ui-observation",
+        "clipboard-observation"
+      ],
+      "requiredAtStage": "verification",
+      "platforms": [
+        "ios"
+      ]
+    },
+    {
+      "id": "diagnostics-back",
+      "expected": "诊断信息页支持返回。",
+      "verification": "executable",
+      "evidenceKinds": [
+        "ui-observation"
+      ],
+      "requiredAtStage": "verification",
+      "platforms": [
+        "ios"
+      ]
+    },
+    {
+      "id": "diagnostics-large-text",
+      "expected": "诊断信息页支持大字体。",
+      "verification": "semantic",
+      "evidenceKinds": [
+        "ui-observation",
+        "semantic-assessment"
+      ],
+      "requiredAtStage": "verification",
+      "platforms": [
+        "ios"
+      ],
+      "rubricRef": "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/large-text-rubric.json#sha256:a11af73382d415a189f595c869c0a42b4444b61ed0696715cceaea3a117892e9"
+    }
+  ],
+  "targetMatrix": [
+    {
+      "platform": "ios",
+      "deviceKind": "simulator",
+      "os": "iOS 26.0"
+    }
+  ],
+  "delivery": {
+    "artifactKinds": [
+      "ios-simulator-app"
+    ],
+    "observation": {
+      "minutes": 30,
+      "minHealthProbes": 10,
+      "minPathRuns": 10
+    }
+  },
+  "resources": {
+    "fixtureRefs": [
+      "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/diagnostics-fixtures.json#sha256:fed0adcf8d10d3618b3edd04253a0bc2d9de18b2ebbac104fa91c21a4a7f5037",
+      "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/diagnostics-case-pack.json#sha256:181743fd5d48b03ca2aac9a3d30627630b982a577bbf96ded7ce26e9fffb7f33"
+    ]
+  },
+  "budgets": {
+    "wallMinutes": 120,
+    "maxRepairCycles": 3,
+    "maxParallelWriters": 1
+  },
+  "costBudgetRef": "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/cost-policy.json#sha256:c350cfe87c407bff0e521ef9bd2b3c76afbc9892b4cce7388cc74bd263677f32"
+}

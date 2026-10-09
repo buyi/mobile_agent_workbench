@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm"
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
+import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core"
 import { Effect } from "effect"
-import type { DatabaseMigration } from "@opencode-ai/core/database/migration"
+import { DatabaseMigration } from "@opencode-ai/core/database/migration"
 
 // Loopit delivery tables live in OpenCode's database (ADR-0002). Events themselves
 // are OpenCode `event` rows; these tables are projections, receipts and the outbox.
@@ -45,6 +45,18 @@ export const OutboxTable = sqliteTable("loopit_outbox", {
   dispatched_at: text(),
 })
 
+export const OperationTable = sqliteTable("loopit_operation", {
+  operation_id: text().primaryKey(),
+  scope_id: text().notNull(),
+  identity_digest: text().notNull(),
+  entry: text({ mode: "json" }).notNull(),
+}, (table) => [uniqueIndex("loopit_operation_logical_identity_idx").on(table.scope_id, sql`json_extract(${table.entry}, '$.record.idempotencyKey')`)])
+
+export const AuthorityTable = sqliteTable("loopit_operation_authority", {
+  scope_id: text().primaryKey(),
+  authority: text({ mode: "json" }).notNull(),
+})
+
 export const migrations: DatabaseMigration.Migration[] = [
   {
     id: "loopit_0001_delivery_core",
@@ -80,4 +92,38 @@ export const migrations: DatabaseMigration.Migration[] = [
           dispatched_at TEXT)`)
       }),
   },
+  {
+    id: "loopit_0002_operation_ledger",
+    up: (tx) => Effect.gen(function* () {
+      yield* tx.run(sql`CREATE TABLE loopit_operation (
+        operation_id TEXT PRIMARY KEY NOT NULL,
+        scope_id TEXT NOT NULL,
+        identity_digest TEXT NOT NULL,
+        entry TEXT NOT NULL)`)
+      yield* tx.run(sql`CREATE INDEX loopit_operation_scope_idx ON loopit_operation (scope_id)`)
+      yield* tx.run(sql`CREATE TABLE loopit_operation_authority (
+        scope_id TEXT PRIMARY KEY NOT NULL,
+        authority TEXT NOT NULL)`)
+    }),
+  },
+  {
+    id: "loopit_0003_operation_logical_identity",
+    up: (tx) => Effect.gen(function* () {
+      // Existing 0002 rows remain untouched. Conflicting legacy identities fail
+      // this migration closed; unknown effects must be reconciled, never merged.
+      yield* tx.run(sql`CREATE UNIQUE INDEX IF NOT EXISTS loopit_operation_logical_identity_idx
+        ON loopit_operation (scope_id, json_extract(entry, '$.record.idempotencyKey'))`)
+      const index = yield* tx.get<{ sql: string }>(sql`SELECT sql FROM sqlite_master
+        WHERE type = 'index' AND name = 'loopit_operation_logical_identity_idx' AND tbl_name = 'loopit_operation'`)
+      const expected = "CREATE UNIQUE INDEX loopit_operation_logical_identity_idx ON loopit_operation (scope_id, json_extract(entry, '$.record.idempotencyKey'))"
+      if (index?.sql.replace(/\s+/g, " ").replace("INDEX IF NOT EXISTS ", "INDEX ").trim() !== expected)
+        return yield* Effect.fail(new Error("Existing operation logical-identity index has an unexpected definition; migration refused"))
+    }),
+  },
 ]
+
+// Upstream applyOnly reads completed migrations before its per-migration
+// transactions. Serialize that read with the DDL and migration marker across
+// processes; retrying a failed DDL could hide a partially applied migration.
+export const applyMigrations = (db: Parameters<typeof DatabaseMigration.applyOnly>[0]) =>
+  db.transaction((tx) => DatabaseMigration.applyOnly(tx, migrations), { behavior: "immediate" })

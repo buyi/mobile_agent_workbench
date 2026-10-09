@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "sum-even-cases/1",
+  "cases": [
+    { "id": "zero", "input": 0, "expected": { "kind": "returned", "value": 0 } },
+    { "id": "one", "input": 1, "expected": { "kind": "returned", "value": 0 } },
+    { "id": "two", "input": 2, "expected": { "kind": "returned", "value": 2 } },
+    { "id": "three", "input": 3, "expected": { "kind": "returned", "value": 2 } },
+    { "id": "four", "input": 4, "expected": { "kind": "returned", "value": 6 } },
+    { "id": "ten", "input": 10, "expected": { "kind": "returned", "value": 30 } },
+    { "id": "eleven", "input": 11, "expected": { "kind": "returned", "value": 30 } },
+    { "id": "upper-bound", "input": 10000, "expected": { "kind": "returned", "value": 25005000 } },
+    { "id": "negative", "input": -1, "expected": { "kind": "threw", "name": "RangeError" } },
+    { "id": "fractional", "input": 1.5, "expected": { "kind": "threw", "name": "RangeError" } },
+    { "id": "nan", "input": "NaN", "expected": { "kind": "threw", "name": "RangeError" } },
+    { "id": "too-large", "input": 10001, "expected": { "kind": "threw", "name": "RangeError" } }
+  ]
+}

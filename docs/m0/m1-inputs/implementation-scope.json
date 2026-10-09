@@ -1,0 +1,148 @@
+{
+  "schemaVersion": "m1-implementation-scope/1",
+  "status": "technical-scope-prepared-not-executable-policy",
+  "sourceRevision": "9874bd473cfb3f9603bb580a2085e68983eb98fa",
+  "deliveryRunAllowed": false,
+  "architectureAuthority": "The frozen repository AGENTS.md and Accepted pages-first architecture override the older personal skill feature-first placement guidance.",
+  "sources": [
+    {
+      "path": "AGENTS.md",
+      "revision": "9874bd473cfb3f9603bb580a2085e68983eb98fa",
+      "digest": "sha256:198709927ccf41e57506e0716d0476a5dcf092fa65e0132a286c06dd6b6a4c1e"
+    },
+    {
+      "path": "design/architecture-reorganization/00-design-overview.md",
+      "revision": "9874bd473cfb3f9603bb580a2085e68983eb98fa",
+      "digest": "sha256:d85a6a1829fae86634d557310ff4eefd07699de5fe571e0b945c41ad9dbc63ba"
+    },
+    {
+      "path": "design/architecture-reorganization/03-structure.md",
+      "revision": "9874bd473cfb3f9603bb580a2085e68983eb98fa",
+      "digest": "sha256:c8f34ed3b66ad7bc456f54b354c1cf7948b45040f130e3686c7743624127a272"
+    },
+    {
+      "path": "design/architecture-reorganization/04-patterns.md",
+      "revision": "9874bd473cfb3f9603bb580a2085e68983eb98fa",
+      "digest": "sha256:bdf2688bb3f40ff5fc12baa79ffc2763916fb1cce4b48285a36df350c2e69111"
+    },
+    {
+      "path": "docs/skills/client_naming_contract.md",
+      "revision": "9874bd473cfb3f9603bb580a2085e68983eb98fa",
+      "digest": "sha256:bceb73e48512a69b61bd68862c76a1cbe96a54644b5489e8234c2999b5881b68"
+    },
+    {
+      "path": "app/settings.tsx",
+      "revision": "9874bd473cfb3f9603bb580a2085e68983eb98fa",
+      "digest": "sha256:12dfa6d623611fd61c5f6936a784c589aab0a15066b3b93df2e5825eb48b179e"
+    },
+    {
+      "path": "app/_layout.tsx",
+      "revision": "9874bd473cfb3f9603bb580a2085e68983eb98fa",
+      "digest": "sha256:c98179e3b8d550e0479a8ad4ccd455718171198f6650aacf2ca6b4c47ea2f583"
+    },
+    {
+      "path": "src/shared/application/applicationMetadata.ts",
+      "revision": "9874bd473cfb3f9603bb580a2085e68983eb98fa",
+      "digest": "sha256:93a458e7f718a060112481d5d3f9b63934902797408492d3cc1c896adf74c169"
+    },
+    {
+      "path": "src/shared/application/applicationBuild.ts",
+      "revision": "9874bd473cfb3f9603bb580a2085e68983eb98fa",
+      "digest": "sha256:151f0644cd8b8f898ee42a08cd23a0e833d70aba9d9ade2b4e931e0bb77a5a7f"
+    },
+    {
+      "path": "src/shared/application/index.ts",
+      "revision": "9874bd473cfb3f9603bb580a2085e68983eb98fa",
+      "digest": "sha256:e7dce28cabb05e8dc817e494defef65b0bf99ac29dd8ba18d6d5c2dad22e5732"
+    },
+    {
+      "path": "package.json",
+      "revision": "9874bd473cfb3f9603bb580a2085e68983eb98fa",
+      "digest": "sha256:86c6aa425380cbdf3e5da993607e8cf07f4a5baca88166d89a3f01578b07dcfa"
+    },
+    {
+      "path": "scripts/architecture/managed-slices.json",
+      "revision": "9874bd473cfb3f9603bb580a2085e68983eb98fa",
+      "digest": "sha256:53f9d7724ac6c00ebc6b86ea085519a8611f2fb32979e0a3f783dcb2e880cabc"
+    },
+    {
+      "path": "scripts/architecture/legacy-bridges.json",
+      "revision": "9874bd473cfb3f9603bb580a2085e68983eb98fa",
+      "digest": "sha256:9555210236e110d16dcd4da2babfd7f83f8267ba022e0892eddacc5160324ff1"
+    }
+  ],
+  "allowedPaths": [
+    "app/settings.tsx",
+    "app/_layout.tsx",
+    "app/diagnostics.tsx",
+    "src/pages/diagnostics/**",
+    "src/features/i18n/dictionaries/en.ts",
+    "src/features/i18n/dictionaries/es.ts",
+    "src/features/i18n/dictionaries/id.ts",
+    "src/features/i18n/dictionaries/pt.ts",
+    "scripts/architecture/managed-slices.json",
+    "scripts/architecture/legacy-bridges.json"
+  ],
+  "entry": {
+    "existing": "app/settings.tsx",
+    "change": "Add a diagnostic-information entry without moving the settings owner or changing sign-out/account behavior.",
+    "route": "app/diagnostics.tsx",
+    "routeRole": "Thin Expo Router adapter importing the page public API.",
+    "page": "src/pages/diagnostics",
+    "pageRole": "Own UI, field-only copy action and local formatting; export DiagnosticsPage explicitly from index.ts.",
+    "navigation": "Register diagnostics stack presentation only if necessary; retain existing push/pop and route gates."
+  },
+  "reuse": [
+    {
+      "publicApi": "src/shared/application",
+      "symbols": [
+        "applicationVersion",
+        "applicationBuildNumber",
+        "applicationEnvironment"
+      ],
+      "usage": "Reuse existing native package identity and environment mapping; do not copy all Expo config, account/session state or arbitrary object properties."
+    },
+    {
+      "package": "expo-clipboard",
+      "versionFromBaseline": "~8.0.8",
+      "usage": "Use existing dependency for the explicit three-field copy action; add no runtime dependency."
+    },
+    {
+      "publicApi": "src/shared/ui/screen-container, src/shared/ui/screen-header, src/shared/ui/toast",
+      "usage": "Reuse existing screen, back navigation and copy feedback where compatible with accessibility."
+    },
+    {
+      "publicApi": "src/features/i18n",
+      "usage": "Reuse existing language selection; add only diagnostics strings to the four existing dictionaries."
+    }
+  ],
+  "governanceDiffRules": [
+    "managed-slices.json: append only the diagnostics page and its ordinary route; keep all existing entries and legacy inventory unchanged.",
+    "legacy-bridges.json: add only exact diagnostics-owned imports actually required by the frozen page; no wildcard src/**, changes to existing bridge permissions or disabling gates.",
+    "Independent verification must enforce these structural restrictions using a trusted baseline; merely passing candidate-controlled npm scripts is not sufficient."
+  ],
+  "protectedPaths": [
+    "AGENTS.md",
+    "docs/**",
+    "design/**",
+    "package.json",
+    "package-lock.json",
+    "ios/**",
+    "android/**",
+    "modules/**",
+    "scripts/architecture/check-architecture.js",
+    "src/shared/application/**",
+    "src/_app/authentication/**"
+  ],
+  "testPlan": [
+    "Focused diagnostics field formatting/copy tests, including absent values and sensitive sentinel fields; copy allowlist contains exactly version/build/environment.",
+    "Touched-file ESLint and associated Jest tests; existing lint:architecture and lint:expo-router-root with unchanged gate source.",
+    "Independent installed package comparison and device UI/clipboard/back/large-text cases from the protected Case Pack; this scope file does not substitute for those observations."
+  ],
+  "limits": [
+    "No RN file was edited during preparation.",
+    "Baseline Podfile.lock two-line preparation patch is pre-existing input, not a new model-write permission.",
+    "Implementation paths, M1 budget, maximum text size and observation counts are concrete. A protected executable policy, device/worker registration, delivery connectors and M0 admission remain required.",
+    "This records technical implementation choices, not new user acceptance thresholds or a full M0 Gate."
+  ]
+}

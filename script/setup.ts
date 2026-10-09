@@ -20,12 +20,16 @@ const links: Record<string, string> = {
   "@loopit/contracts": join(root, "packages/contracts"),
   "@loopit/delivery": join(root, "packages/delivery"),
   "@loopit/sandbox": join(root, "packages/sandbox"),
+  "@loopit/runtime": join(root, "packages/runtime"),
+  "@loopit/recovery-journal": join(root, "packages/recovery-journal"),
   effect: realpathSync(join(core, "node_modules/effect")),
   "drizzle-orm": realpathSync(join(core, "node_modules/drizzle-orm")),
   "@types/bun": realpathSync(join(core, "node_modules/@types/bun")),
   "@types/node": realpathSync(join(core, "node_modules/@types/node")),
   "@tsconfig/bun": realpathSync(join(vendor, "node_modules/@tsconfig/bun")),
   typescript: realpathSync(join(vendor, "node_modules/typescript")),
+  ".bin/tsc": realpathSync(join(vendor, "node_modules/typescript/bin/tsc")),
+  ".bin/tsserver": realpathSync(join(vendor, "node_modules/typescript/bin/tsserver")),
 }
 
 for (const [name, target] of Object.entries(links)) {

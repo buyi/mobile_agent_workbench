@@ -33,7 +33,7 @@ OpenCode 自身的权限交互不提供安全隔离；OS 沙盒及资源边界�
 
 ## 1 过往建设的取舍
 
-以下本地来源仅作研究记录，未随本仓库发布；路径文本不能在 GitHub 上直接打开。本文已归纳设计取舍，阅读和实施本仓库规格不要求读者拥有这些本地路径。
+以下本地路径记录原研究来源，路径文本不能在 GitHub 上直接打开。2026-10-09 用户确认复用 mobile-ui-runtime，已将其固定提交纳入 `vendor/mobile-ui-runtime` submodule；其余资料仍只作参考。阅读和实施本仓库规格不要求读者拥有原本机路径。
 
 | 资料 | 可借鉴内容 | 本次调整 |
 | --- | --- | --- |
@@ -42,7 +42,7 @@ OpenCode 自身的权限交互不提供安全隔离；OS 沙盒及资源边界�
 | MVP 定义（本地来源：`/Users/buyi/buyisure/workflow/docs/mvp.md`）与验收标准（本地来源：`/Users/buyi/buyisure/workflow/docs/验收标准.md`） | 分清纯代码回路与设备交付，度量人工触碰 | 纯代码只作为 M0 接入实验；用户已要求 M1 真实 Loopit 功能，不能以壳跑通代替 |
 | HELLO-1 复盘（本地来源：`/Users/buyi/buyisure/workflow/docs/postmortem/2026-09-10-HELLO-1-judge-bug.md`） | 验收器会写错、配置会泄漏、全量日志撑大上下文 | 验收器正反例、受控配置 manifest、增量审查及证据按需加载纳入首期 |
 | 生长式应用理念（本地来源：`/Users/buyi/buyisure/workflow/docs/理念-生长式应用.md`） | 目标固定、实现方法可生成、经验可稳定复用 | 本次建设研发工作台；端侧运行时生成 App 逻辑是另一产品方向，不自动混入范围 |
-| Mobile UI Runtime（本地来源：`/Users/buyi/yongyue/mobile-ui-runtime/README.md`） | 语义树、revision guard、操作后观察、身份与隐私处理 | 通过 Adapter 候选复用；当前插件形态和具体 DSH 依赖不是新工作台的公共协议 |
+| Mobile UI Runtime（原来源：`/Users/buyi/yongyue/mobile-ui-runtime/README.md`；现锁定 `vendor/mobile-ui-runtime@04975ff`） | 语义树、revision guard、操作后观察、身份与隐私处理、共享队列及生命周期/取证 | 直接复用通用核心与 provider；OpenCode 保持唯一 Agent 循环，工作台补任务权限、持久恢复与独立 Gate；不加载 DSH 插件 |
 | 验证执行合同（本地来源：`/Users/buyi/yongyue/mobile-ui-runtime/docs/verification-execution-contract.md`） | 共享设备事务、截图新鲜度、重启日志边界 | 当前租约不覆盖外部 CLI/Panels；新工作台必须统一 Broker 或明确无独占能力 |
 | Mobile UI Case（本地来源：`/Users/buyi/yongyue/mobile-ui-case/README.md`） | 产品 case、fixture、begin/finalize、oracle 与 release gate | 业务语义留在 Case Pack；版本绑定后接入工作台 Gate，不把脚本输出直接当整个 Task 完成 |
 | Panels 性能说明（本地来源：`/Users/buyi/yongyue/loopit-panels/PROFILE.md`） | 设备/环境明确、证据时间窗、性能基线对比 | 参考观察体验及采集能力；React render 耗时与原生帧耗时保持区分 |

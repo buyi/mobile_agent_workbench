@@ -1,0 +1,181 @@
+{
+  "schemaVersion": "m1-execution-policy-preparation/1",
+  "status": "prepared-not-protected",
+  "deliveryRunAllowed": false,
+  "version": 1,
+  "provenance": {
+    "userStandardsRef": "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/confirmed-inputs.json#sha256:29cc6be5df38d07d37fd6704ff50cdb3502e2e7970040371a1ca7aed9fde7149",
+    "scopeRef": "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/implementation-scope.json#sha256:6672acceaec98830cae64cd977198236966d46467e48d0c54963bd420e82eb82",
+    "kind": "Technical enforcement mapping; no added user acceptance criteria"
+  },
+  "policyDraft": {
+    "schemaVersion": "policy/1",
+    "policyId": "m1-diagnostics-local-ios",
+    "version": 1,
+    "permissions": {
+      "writablePaths": [
+        "app/settings.tsx",
+        "app/_layout.tsx",
+        "app/diagnostics.tsx",
+        "src/pages/diagnostics/**",
+        "src/features/i18n/dictionaries/en.ts",
+        "src/features/i18n/dictionaries/es.ts",
+        "src/features/i18n/dictionaries/id.ts",
+        "src/features/i18n/dictionaries/pt.ts",
+        "scripts/architecture/managed-slices.json",
+        "scripts/architecture/legacy-bridges.json"
+      ],
+      "maxSideEffect": "reconcile_required"
+    },
+    "data": {
+      "allowedSensitivity": [
+        "public",
+        "internal"
+      ]
+    },
+    "deployment": {
+      "autoMerge": false
+    },
+    "failure": {
+      "maxTransientAttempts": 1,
+      "maxRepairCycles": 3
+    }
+  },
+  "unresolvedPolicyFields": [
+    "digest",
+    "permissions.network",
+    "permissions.networkAllowlist when allowlist is used",
+    "tools",
+    "data.retentionPolicyRef",
+    "deployment.environments",
+    "deployment.channels",
+    "resources.devices",
+    "resources.workers",
+    "resources.secrets"
+  ],
+  "publication": {
+    "registered": false,
+    "protected": false,
+    "policyRefPublished": false,
+    "reason": "Do not hash an incomplete draft into a published PolicyRef. Final digest, concrete tool pins, protected resource handles and policy installation require separate verification."
+  },
+  "budget": {
+    "wallMinutes": 120,
+    "maxRepairCycles": 3,
+    "maxParallelWriters": 1,
+    "modelId": "openai/gpt-6.1-sol",
+    "allowUnknownCost": true,
+    "dollarCapVerified": false,
+    "clock": "Persist one goal delivery start and absolute deadline before the first M1 dispatch. Queue/build/verification/wait/observation and repairs consume the same 120 minutes; a new Attempt or Run never resets it.",
+    "deadlineAction": "Stop new model/write/build/install dispatch on exhaustion; stop/reconcile already owned processes and perform authorized cleanup. Freeze the cleanup reservation before admission; this draft does not extend the budget.",
+    "m0DeadlineExtended": false,
+    "startsOnlyAfterM0Passes": true
+  },
+  "roles": [
+    {
+      "role": "builder",
+      "input": "Pinned source, goal, design, public fixture expectations and scoped context; credentials never appear in model context.",
+      "mayWrite": [
+        "app/settings.tsx",
+        "app/_layout.tsx",
+        "app/diagnostics.tsx",
+        "src/pages/diagnostics/**",
+        "src/features/i18n/dictionaries/en.ts",
+        "src/features/i18n/dictionaries/es.ts",
+        "src/features/i18n/dictionaries/id.ts",
+        "src/features/i18n/dictionaries/pt.ts",
+        "scripts/architecture/managed-slices.json",
+        "scripts/architecture/legacy-bridges.json"
+      ],
+      "forbiddenWrites": [
+        "AGENTS.md",
+        "docs/**",
+        "design/**",
+        "package.json",
+        "package-lock.json",
+        "ios/**",
+        "android/**",
+        "modules/**",
+        "scripts/architecture/check-architecture.js",
+        "src/shared/application/**",
+        "src/_app/authentication/**"
+      ],
+      "additionalRestrictions": [
+        "No writes to .git internals, case/rubric/fixture/validator files, protected baseline, evidence, policy or trust stores.",
+        "Model decides design/code/diagnosis; harness limits paths, budget and capabilities and preserves receipts.",
+        "No package install/network fetch or new dependency is authorized by this draft. Use pinned dependencies; missing dependencies block."
+      ],
+      "runtime": "One locked OpenCode runtime; exact executable/version/digest and sandbox/tool permissions must be frozen before dispatch."
+    },
+    {
+      "role": "verifier",
+      "input": "Read-only frozen candidate plus independently protected Case Pack and fixture.",
+      "network": "Candidate unit-test child must have network=none and no secrets; mobile verification requires its own explicit broker boundary, not an inherited general shell.",
+      "authority": "Candidate or Builder output cannot supply the expected values, verifier key, final verdict, proof of own foreground identity or official test implementation.",
+      "publication": "Only trusted verifier/broker/build/release identities may emit evidence after binding checks; no signature or Gate is generated by these preparations."
+    },
+    {
+      "role": "broker-build-release",
+      "input": "Fixed local simulator handle and candidate/build identity.",
+      "allowedOperations": [
+        "Build the frozen iOS simulator candidate with protected build settings.",
+        "Inspect/install only the exact app bytes on the exclusively leased test simulator.",
+        "Observe and operate the diagnostics path only; restore or uninstall only the owned installation."
+      ],
+      "unresolved": "No resource handle, executable deployment connector or OS-exclusive device lease is registered by this policy."
+    }
+  ],
+  "networkBoundary": {
+    "notAnExecutableNetworkPolicy": true,
+    "candidateUnitTests": "none",
+    "modelProvider": "Only trusted runtime credential delivery to an explicitly pinned provider/egress route; endpoint policy not frozen here. A localhost proxy port by itself is not a domain allowlist.",
+    "deviceApp": "Diagnostics needs no backend mutation. A login-free isolated fixture and app network boundary must be proven before UI execution; no real account/login fallback."
+  },
+  "sensitiveInformation": {
+    "displayAndCopyFields": [
+      "version",
+      "build",
+      "environment"
+    ],
+    "sources": [
+      "src/shared/application: applicationVersion",
+      "src/shared/application: applicationBuildNumber",
+      "src/shared/application: applicationEnvironment"
+    ],
+    "forbidden": [
+      "Account/session stores, user id/email/phone/profile in diagnostics UI or clipboard.",
+      "Tokens, OAuth access/refresh content, cookie, credential file contents, environment dumps or whole Expo config.",
+      "Login, creating an account, logout, sending messages, publishing content, payment or other external business changes."
+    ],
+    "fixtureData": "Only explicit synthetic values; never discover/copy real account or auth state for a negative test.",
+    "evidence": "Capture only fixture-owned page/window. Do not read or overwrite the operator clipboard; require an isolated test clipboard. If unexpected personal data appears, block recording/export and quarantine the observation."
+  },
+  "retriesAndStop": {
+    "maxTransientAttemptsMeaning": "1 dispatch, zero blind automatic retries. Read-only refresh/reconciliation may inspect state; ambiguous writes remain unknown until exact operation identity is reconciled.",
+    "pauseCancelLoss": "Close admission, fence stale owners, persist intent and confirm owned worker/verifier/device operations stopped before permitting another writer. ACK or process exit alone is insufficient.",
+    "repair": "Preserve the failing candidate and evidence; give the model an explicit failure reason in a new bounded Attempt. Keep original acceptance, deadline and total repair count.",
+    "journal": "An independent durable authorization/recovery authority is still required. A caller ownerId, local SQLite, offline SSH test or self-declared forced-command marker is not an authenticated independent authority."
+  },
+  "cleanup": {
+    "onlyOwnedResources": true,
+    "actions": [
+      "Stop only this Run's owned worker/verifier/runner and revoke its lease.",
+      "Restore the recorded pre-test simulator text-size and owned fixture clipboard; verify the restored values.",
+      "If the simulator was empty, uninstall only this candidate/owned runner and confirm no app or placeholder/container across one controlled restart. If replacing an authorized baseline, restore the pinned baseline bytes and verify the installed identity.",
+      "Return the leased simulator to its recorded prior power state only through the broker; do not alter the historic device or any other app by path alone.",
+      "Preserve immutable receipts, failures and unknown usage. Apply a separately frozen nonsecret retention policy; this draft does not authorize deleting audit records."
+    ],
+    "failure": "Do not mark released/succeeded on cleanup uncertainty. Keep the resource quarantined and report the remaining state."
+  },
+  "admissionBlockers": [
+    "m0-entry-gate",
+    "independent-journal",
+    "protected-execution-policy",
+    "protected-case-runner",
+    "login-free-ui-fixture",
+    "exclusive-device-broker",
+    "local-delivery-channel",
+    "trusted-credential-reference",
+    "cleanup-reservation"
+  ]
+}

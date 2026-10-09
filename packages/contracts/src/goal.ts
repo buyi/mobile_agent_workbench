@@ -152,5 +152,17 @@ export function checkFrozen(goal: GoalSpec): ContractIssue[] {
   goal.resources?.fixtureRefs?.forEach((ref, index) => {
     if (!pinned(ref)) issues.push(issue("unpinned", `resources.fixtureRefs[${index}]`, `${ref} must be pinned`))
   })
+  goal.acceptance.forEach((criterion, index) => {
+    if (criterion.rubricRef && !pinned(criterion.rubricRef))
+      issues.push(issue("unpinned", `acceptance[${index}].rubricRef`, "The acceptance rubric must be pinned"))
+  })
+  goal.targetMatrix.forEach((target, index) => {
+    if (!target.deviceRef)
+      issues.push(issue("device_identity_missing", `targetMatrix[${index}].deviceRef`, "A declared target must identify its registered device"))
+    else if (!pinned(target.deviceRef))
+      issues.push(issue("unpinned", `targetMatrix[${index}].deviceRef`, "The device descriptor must be pinned"))
+    if (!target.os)
+      issues.push(issue("device_os_missing", `targetMatrix[${index}].os`, "A declared target must freeze its operating system version"))
+  })
   return issues
 }

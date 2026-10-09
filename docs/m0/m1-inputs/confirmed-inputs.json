@@ -1,0 +1,165 @@
+{
+  "schemaVersion": "m1-input-preparation/1",
+  "status": "draft",
+  "deliveryRunAllowed": false,
+  "recordedOn": "2026-10-09",
+  "provenance": {
+    "kind": "conversation-confirmation-summary",
+    "source": "User confirmations relayed by the coordinating task for this preparation; descriptions below are summaries, not verbatim quotations.",
+    "originalMessageExportIncluded": false
+  },
+  "userConfirmed": {
+    "objective": "在现有 Loopit 中实现诊断信息页。",
+    "acceptance": [
+      {
+        "id": "diagnostics-display",
+        "expected": "诊断信息页显示当前版本、build、环境。"
+      },
+      {
+        "id": "diagnostics-copy",
+        "expected": "可以复制版本、build、环境。"
+      },
+      {
+        "id": "diagnostics-no-account-token",
+        "expected": "诊断信息页和复制内容不包含账号或 token。"
+      },
+      {
+        "id": "diagnostics-back",
+        "expected": "诊断信息页支持返回。"
+      },
+      {
+        "id": "diagnostics-large-text",
+        "expected": "诊断信息页支持大字体。"
+      }
+    ],
+    "deliveryScope": {
+      "platform": "ios",
+      "deviceKind": "simulator",
+      "location": "local-machine",
+      "artifactKind": "ios-simulator-app",
+      "endpoint": "本机 .app 安装、验证以及卸载或恢复基线。"
+    },
+    "source": {
+      "repository": "leap_loopit_rn",
+      "baselineBranch": "release/1.3.50",
+      "baseRevision": "9874bd473cfb3f9603bb580a2085e68983eb98fa",
+      "preparationPatch": "已记录的 NativeAds、NativeFeed 两行 Podfile.lock 校验和修复；不是原封不动的基线。"
+    },
+    "model": {
+      "modelId": "openai/gpt-6.1-sol",
+      "runtime": "OpenCode"
+    },
+    "m0ExperimentBudgetOnly": {
+      "wallMinutes": 60,
+      "maxRepairCycles": 3,
+      "authentication": "沿用已有 OAuth 套餐",
+      "cost": {
+        "known": false,
+        "reason": "OAuth 套餐实验不能核算美元费用；已允许 unknown，不承诺 10 美元封顶。"
+      },
+      "appliesTo": "M0 bounded capability experiments",
+      "appliesToM1FullRun": false
+    },
+    "m1Delivery": {
+      "confirmedOn": "2026-10-09",
+      "source": "User selected 采用这组 M1 标准（推荐） in the M1-specific confirmation in this task.",
+      "budgets": {
+        "wallMinutes": 120,
+        "maxRepairCycles": 3,
+        "maxParallelWriters": 1
+      },
+      "modelId": "openai/gpt-6.1-sol",
+      "allowUnknownCost": true,
+      "dollarCapVerified": false,
+      "largeText": "System maximum accessibility text size; verify display, copy and back.",
+      "observation": {
+        "minutes": 30,
+        "minPathRuns": 10
+      },
+      "m0DeadlineExtended": false,
+      "startsOnlyAfterM0Passes": true
+    }
+  },
+  "technicalObservations": {
+    "worktree": "/Users/buyi/Documents/bench/.bench/workspaces/loopit-m0-ios",
+    "worktreeObservedHead": "9874bd473cfb3f9603bb580a2085e68983eb98fa",
+    "worktreeObservedChanges": [
+      "ios/Podfile.lock"
+    ],
+    "baselineApp": {
+      "bundleId": "com.seedleap.loopitapp.test",
+      "version": "1.3.50",
+      "build": "98",
+      "configuration": "ReleaseTest",
+      "appEnvironment": "test",
+      "isM1FeatureArtifact": false
+    },
+    "deviceCandidate": {
+      "udid": "62F1C107-7480-41BD-B2E2-6C3323B8ECDA",
+      "deviceType": "iPhone 17 Pro",
+      "os": "iOS 26.0",
+      "source": "Existing dedicated M0 experiment device",
+      "brokerRegistered": false,
+      "lastRecordedState": "Shutdown",
+      "liveDeviceRequeriedInThisPreparation": false
+    },
+    "cleanupEvidence": "Existing UI/state probe reports confirm app and new Runner absent across reboot; this preparation did not operate the simulator.",
+    "credentials": "No token, credential file contents or executable secret reference is copied into these materials."
+  },
+  "technicalProposalsNotUserStandards": {
+    "goalIdentity": {
+      "projectId": "loopit-mobile",
+      "taskId": "m1-diagnostics-page",
+      "goalRevision": 1,
+      "note": "Draft identifiers assigned for mapping, not a frozen or submitted goal revision."
+    },
+    "verificationMapping": "The draft maps existing user expectations to criterion IDs, stages and evidence types. These mappings propose execution methods; they do not add or relax user expectations.",
+    "largeText": "User confirmed the maximum system accessibility text-size category; concrete evaluation mapping is recorded in large-text-rubric.json. No M1 UI observation has occurred.",
+    "observationDefaults": "30 minutes and 10 complete paths were explicitly confirmed for M1 in the latest reply. Observe foreground/liveness once per path (10 health observations) as the implementation mapping, not an extra independently requested health-probe threshold.",
+    "implementationPaths": "Mapped against the frozen release baseline in implementation-scope.json; use repository pages-first authority, existing shared/application identity and expo-clipboard. No RN source changes or executable policy installation.",
+    "oldSpecText": "Earlier M1 prose saying the feature/platform/model are unknown is superseded by the user confirmations above, not by an unreviewed new acceptance standard.",
+    "executionPreparation": "Version 1 execution-policy.draft.json, diagnostics-fixtures.json and diagnostics-case-pack.json map the confirmed standards to bounded methods. They are local prepared-not-protected materials, not installed policies, formal evidence or admission."
+  },
+  "unresolved": [
+    {
+      "id": "execution-policy",
+      "fields": [
+        "policyRef",
+        "resources.secretRefs"
+      ],
+      "owner": "implementation",
+      "reason": "已准备版本 1 操作边界及 policy/1 已知字段；仍缺固定工具/网络出口、worker/凭据句柄、保留策略与受保护发布。草案未填写无法证实的 digest 或资源引用，不能执行。"
+    },
+    {
+      "id": "device-broker",
+      "fields": [
+        "targetMatrix[0].deviceRef"
+      ],
+      "owner": "implementation",
+      "reason": "有专用模拟器和局部工具证据，尚无正式 Broker 注册描述、独占/fencing 与可核验资源句柄。"
+    },
+    {
+      "id": "protected-fixture",
+      "fields": [
+        "resources.fixtureRefs"
+      ],
+      "owner": "implementation",
+      "reason": "已准备真实摘要固定的合成 fixture、诊断 Case Pack、正反例映射和大字体 rubric；尚未 root 保护/安装，独立 Runner、无真实账号的页面入口及设备 clipboard 隔离仍未建立。"
+    },
+    {
+      "id": "delivery-connectors",
+      "fields": [
+        "delivery.channelRef",
+        "delivery.environmentRef"
+      ],
+      "owner": "implementation",
+      "reason": "本机 .app 终点已确认；仍需固定本机渠道/环境描述与安装、核验、卸载或恢复执行器，不引入 TestFlight 或远端发布。"
+    },
+    {
+      "id": "m0-entry-gate",
+      "fields": [],
+      "owner": "implementation",
+      "reason": "M0 总体尚未通过；RecoveryJournal 的本机进程/离线 SSH transport 不证明独立故障域或远端认证。局部成功不能替代 M0 准入 Gate。"
+    }
+  ]
+}

@@ -92,6 +92,43 @@ describe("crash recovery (M0-A03)", () => {
 })
 
 describe("multi-process writers", () => {
+  test("Run ID ownership is global across concurrent task writers in separate processes", async () => {
+    const db = tempDb()
+    const taskIds = ["task-1", "task-2", "task-3", "task-4"]
+    await withService(db, (s) => Effect.gen(function* () {
+      for (const taskId of taskIds)
+        expect((yield* exec(s, cmd.create({ taskId, goal: goal({ taskId }) }))).status).toBe("accepted")
+    }))
+    const procs = taskIds.map((taskId, i) => {
+      const marker = `${db}.run-owner-${i}`
+      const command = { ...cmd.start(1, "shared-run"), taskId }
+      return { marker, command, proc: Bun.spawn([process.execPath, child, db, "submit", marker, JSON.stringify(command)], { stderr: "pipe" }) }
+    })
+    const exits = await Promise.all(procs.map(async ({ proc }) => ({ code: await proc.exited, stderr: await new Response(proc.stderr).text() })))
+    for (const exit of exits) expect(exit.code, exit.stderr).toBe(0)
+    const receipts = procs.map((p) => JSON.parse(readFileSync(p.marker, "utf8")).receipt)
+    expect(receipts.filter((r) => r.status === "accepted")).toHaveLength(1)
+    expect(receipts.filter((r) => r.rejection?.code === "run_exists")).toHaveLength(3)
+    const winner = receipts.find((r) => r.status === "accepted").aggregateId
+    await withService(db, (s) => Effect.gen(function* () {
+      for (let i = 0; i < taskIds.length; i++) {
+        expect(yield* exec(s, procs[i].command)).toEqual(receipts[i])
+        const task = (yield* s.getTask(taskIds[i]))!
+        expect(task.version).toBe(taskIds[i] === winner ? 2 : 1)
+        expect(Object.keys(task.runs)).toEqual(taskIds[i] === winner ? ["shared-run"] : [])
+        expect(yield* s.replay(taskIds[i])).toEqual(task)
+      }
+      const starts: string[] = []
+      yield* s.drainOutbox((item) => Effect.sync(() => {
+        if (item.envelope.eventType === "loopit.run.started") starts.push(item.envelope.aggregateId)
+      }))
+      expect(starts).toEqual([winner])
+      expect((yield* s.getRun("shared-run"))?.taskId).toBe(winner)
+      expect((yield* exec(s, cmd.report("shared-run", "running", { taskId: winner }))).status).toBe("accepted")
+      expect(yield* s.getRun("shared-run")).toMatchObject({ taskId: winner, status: "running" })
+    }))
+  }, 60_000)
+
   test("S02 across processes: concurrent revisions on one version yield exactly one winner", async () => {
     const db = tempDb()
     await seed(db)
@@ -100,7 +137,8 @@ describe("multi-process writers", () => {
       const revise = cmd.revise(1, 2, { goal: goal({ goalRevision: 2, objective: `writer ${i}` }) })
       return { marker, proc: Bun.spawn([process.execPath, child, db, "submit", marker, JSON.stringify(revise)], { stderr: "pipe" }) }
     })
-    await Promise.all(procs.map((p) => p.proc.exited))
+    const exits = await Promise.all(procs.map(async ({ proc }) => ({ code: await proc.exited, stderr: await new Response(proc.stderr).text() })))
+    for (const exit of exits) expect(exit.code, exit.stderr).toBe(0)
     const receipts = procs.map((p) => JSON.parse(readFileSync(p.marker, "utf8")).receipt)
     expect(receipts.filter((r) => r.status === "accepted").length).toBe(1)
     expect(receipts.filter((r) => r.rejection?.code === "version_conflict").length).toBe(3)
@@ -121,7 +159,8 @@ describe("multi-process writers", () => {
       const marker = `${db}.dup-${i}`
       return { marker, proc: Bun.spawn([process.execPath, child, db, "submit", marker, JSON.stringify(start)], { stderr: "pipe" }) }
     })
-    await Promise.all(procs.map((p) => p.proc.exited))
+    const exits = await Promise.all(procs.map(async ({ proc }) => ({ code: await proc.exited, stderr: await new Response(proc.stderr).text() })))
+    for (const exit of exits) expect(exit.code, exit.stderr).toBe(0)
     const receipts = procs.map((p) => JSON.parse(readFileSync(p.marker, "utf8")).receipt)
     for (const r of receipts) expect(r).toEqual(receipts[0])
     expect(receipts[0].status).toBe("accepted")

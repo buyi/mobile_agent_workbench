@@ -1,0 +1,141 @@
+{
+  "schemaVersion": "m1-diagnostics-fixtures/1",
+  "status": "prepared-not-protected",
+  "deliveryRunAllowed": false,
+  "version": 1,
+  "containsRealAccountOrCredential": false,
+  "sourceRevision": "9874bd473cfb3f9603bb580a2085e68983eb98fa",
+  "implementationScopeRef": "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/implementation-scope.json#sha256:6672acceaec98830cae64cd977198236966d46467e48d0c54963bd420e82eb82",
+  "executionStatus": "not-run",
+  "interpretation": "Data and expected values for future protected tests. These are not candidate results, deployed test code or a login/auth fixture.",
+  "fieldContract": {
+    "allowedFields": [
+      "version",
+      "build",
+      "environment"
+    ],
+    "outputSources": [
+      "applicationVersion",
+      "applicationBuildNumber",
+      "applicationEnvironment"
+    ],
+    "comparison": "Compare three field values and exact allowlisted field membership. Localized labels, ordering and copy serialization are a DesignSpec choice, not a new user standard; freeze a verifier-owned decoder from that design before UI execution.",
+    "fallbackAuthority": "Reuse the unchanged shared/application modules; the null fallbacks and carrier precedence below come from their pinned baseline bytes, not a new fallback requirement."
+  },
+  "cases": [
+    {
+      "id": "native-test",
+      "input": {
+        "nativeVersion": "1.3.50",
+        "nativeBuild": "98",
+        "nativeApplicationId": "com.seedleap.loopitapp.test",
+        "extraAppEnv": "prod"
+      },
+      "expected": {
+        "version": "1.3.50",
+        "build": "98",
+        "environment": "test"
+      }
+    },
+    {
+      "id": "native-prod",
+      "input": {
+        "nativeVersion": "2.0.0",
+        "nativeBuild": "123",
+        "nativeApplicationId": "com.seedleap.loopitapp",
+        "extraAppEnv": "test"
+      },
+      "expected": {
+        "version": "2.0.0",
+        "build": "123",
+        "environment": "prod"
+      }
+    },
+    {
+      "id": "unknown-host-extra",
+      "input": {
+        "nativeVersion": "9.8.7",
+        "nativeBuild": "42",
+        "nativeApplicationId": "synthetic.host",
+        "extraAppEnv": "TeSt"
+      },
+      "expected": {
+        "version": "9.8.7",
+        "build": "42",
+        "environment": "test"
+      }
+    },
+    {
+      "id": "null-metadata",
+      "input": {
+        "nativeVersion": null,
+        "nativeBuild": null,
+        "nativeApplicationId": null,
+        "extraAppEnv": null
+      },
+      "expected": {
+        "version": "0.0.0",
+        "build": "0",
+        "environment": "unknown"
+      }
+    },
+    {
+      "id": "non-string-env",
+      "input": {
+        "nativeVersion": "9.8.7",
+        "nativeBuild": "42",
+        "nativeApplicationId": "synthetic.host",
+        "extraAppEnv": {
+          "value": "prod"
+        }
+      },
+      "expected": {
+        "version": "9.8.7",
+        "build": "42",
+        "environment": "unknown"
+      }
+    },
+    {
+      "id": "field-allowlist",
+      "input": {
+        "applicationVersion": "9.8.7",
+        "applicationBuildNumber": "42",
+        "applicationEnvironment": "test",
+        "accountId": "SYNTHETIC_ACCOUNT_DO_NOT_COPY",
+        "email": "fixture@example.invalid",
+        "token": "SYNTHETIC_TOKEN_DO_NOT_COPY",
+        "refreshToken": "SYNTHETIC_REFRESH_DO_NOT_COPY",
+        "unrelated": "SYNTHETIC_EXTRA_DO_NOT_COPY"
+      },
+      "expected": {
+        "version": "9.8.7",
+        "build": "42",
+        "environment": "test"
+      },
+      "forbiddenValues": [
+        "SYNTHETIC_ACCOUNT_DO_NOT_COPY",
+        "fixture@example.invalid",
+        "SYNTHETIC_TOKEN_DO_NOT_COPY",
+        "SYNTHETIC_REFRESH_DO_NOT_COPY",
+        "SYNTHETIC_EXTRA_DO_NOT_COPY"
+      ]
+    }
+  ],
+  "clipboard": {
+    "priorSyntheticValue": "LOOPIT_DIAGNOSTICS_PRIOR_SYNTHETIC",
+    "readScope": "Only a proven isolated fixture clipboard, never the operator host clipboard.",
+    "success": "Read clipboard from an independent device/broker observation after copy and compare to the frozen three-field design decoder. A toast or app callback is not proof.",
+    "cleanup": "Restore and observe the fixture-owned prior synthetic value."
+  },
+  "installedCandidate": {
+    "expectedValuesSource": "Read the independently inspected candidate app/native receipt and pinned unchanged application environment mapping; never read expected version/build from the candidate diagnostics UI.",
+    "baselineIsNotCandidate": true,
+    "noHardcodedBaselineOnFutureCandidate": true
+  },
+  "privacyLimit": "Synthetic sentinels plus a three-field data boundary test provide deterministic negative coverage. They do not claim a general static information-flow proof or coverage of a real authenticated session.",
+  "missingForDeployment": [
+    "Root/independent-verifier-owned immutable test implementation and fixtures.",
+    "A proven login-free route/page fixture using no real account and no change to auth gates.",
+    "An isolated device clipboard, foreground state, installed-build identity and actual maximum text-size observer."
+  ]
+}

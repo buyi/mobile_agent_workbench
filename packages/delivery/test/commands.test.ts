@@ -90,6 +90,76 @@ describe("commands and receipts", () => {
 })
 
 describe("run lifecycle", () => {
+  test("executor reports cannot initiate control commands or resume a persisted pause", async () => {
+    const db = tempDb()
+    await withService(db, (s) =>
+      Effect.gen(function* () {
+        accepted(yield* exec(s, cmd.create()))
+        accepted(yield* exec(s, cmd.start(1, "run-1")))
+        accepted(yield* exec(s, cmd.report("run-1", "running")))
+        for (const kind of ["worker", "verifier", "system"])
+          for (const to of ["pausing", "cancelling"])
+            rejected(yield* exec(s, cmd.report("run-1", to, { actor: { kind, id: "executor" } })), "control_command_required")
+        expect((yield* s.getTask("task-1"))!.version).toBe(3)
+        accepted(yield* exec(s, cmd.pause(3, "run-1")))
+        accepted(yield* exec(s, cmd.report("run-1", "paused")))
+      }),
+    )
+    await withService(db, (s) =>
+      Effect.gen(function* () {
+        const paused = yield* s.getTask("task-1")
+        for (const kind of ["worker", "verifier", "system"])
+          for (const to of ["recovering", "running", "cancelling"])
+            rejected(yield* exec(s, cmd.report("run-1", to, { actor: { kind, id: "executor" } })), "control_command_required")
+        rejected(yield* exec(s, { ...cmd.resume(5, "run-1"), actor: { kind: "worker", id: "executor" } }), "forbidden")
+        expect(yield* s.getTask("task-1")).toEqual(paused)
+        expect(yield* s.replay("task-1")).toEqual(paused)
+
+        // A control command authorizes reconciliation; reports can then confirm execution.
+        accepted(yield* exec(s, cmd.resume(5, "run-1")))
+        accepted(yield* exec(s, cmd.report("run-1", "running")))
+        accepted(yield* exec(s, cmd.report("run-1", "recovering")))
+        accepted(yield* exec(s, cmd.report("run-1", "running")))
+        accepted(yield* exec(s, cmd.cancel(9, "run-1")))
+        accepted(yield* exec(s, cmd.report("run-1", "cancelled")))
+        expect((yield* s.getRun("run-1"))?.status).toBe("cancelled")
+      }),
+    )
+  })
+
+  test("concurrent tasks cannot share a global Run ID; rejected intents leave no events or outbox", () =>
+    withService(tempDb(), (s) =>
+      Effect.gen(function* () {
+        const ids = ["task-1", "task-2", "task-3", "task-4"]
+        for (const taskId of ids) accepted(yield* exec(s, cmd.create({ taskId, goal: goal({ taskId }) })))
+        const commands = ids.map((taskId) => ({ ...cmd.start(1, "shared-run"), taskId }))
+        const receipts = yield* Effect.all(commands.map((command) => exec(s, command)), { concurrency: "unbounded" })
+        expect(receipts.filter((r) => r.status === "accepted")).toHaveLength(1)
+        const winner = receipts.find((r) => r.status === "accepted")!.aggregateId
+        for (let i = 0; i < ids.length; i++) {
+          expect(yield* exec(s, commands[i])).toEqual(receipts[i])
+          const task = (yield* s.getTask(ids[i]))!
+          expect(yield* s.replay(ids[i])).toEqual(task)
+          if (ids[i] === winner) {
+            expect(task.version).toBe(2)
+          } else {
+            rejected(receipts[i], "run_exists")
+            expect(task.version).toBe(1)
+            expect(task.runs).toEqual({})
+          }
+        }
+        const starts: string[] = []
+        yield* s.drainOutbox((item) => Effect.sync(() => {
+          if (item.envelope.eventType === "loopit.run.started") starts.push(item.envelope.aggregateId)
+        }))
+        expect(starts).toEqual([winner])
+        expect((yield* s.getRun("shared-run"))?.taskId).toBe(winner)
+        accepted(yield* exec(s, cmd.report("shared-run", "running", { taskId: winner })))
+        expect(yield* s.getRun("shared-run")).toMatchObject({ taskId: winner, status: "running" })
+        rejected(yield* exec(s, { ...cmd.start(3, "shared-run"), taskId: winner }), "run_exists")
+      }),
+    ))
+
   test("pause/cancel only finish when the executor confirms the stop; terminal runs never resume", () =>
     withService(tempDb(), (s) =>
       Effect.gen(function* () {

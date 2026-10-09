@@ -1,0 +1,6 @@
+{
+  "name": "@loopit/runtime",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" }
+}

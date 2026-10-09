@@ -185,6 +185,11 @@ export function decide(state: TaskState | undefined, command: Command, now: stri
       return transition("recovering", command.reason ?? "resume requested; reconcile before continuing")
     case "reportRun": {
       if (!executorKinds.has(command.actor.kind)) return reject("forbidden", "Only executors report run facts")
+      // Reports acknowledge execution, but never replace a control command. In
+      // particular a paused run stays paused across restarts until resumeRun or
+      // cancelRun records a new authorized intent, even for a system reporter.
+      if (run.status === "paused" || command.to === "pausing" || command.to === "cancelling")
+        return reject("control_command_required", "Use pauseRun, cancelRun or resumeRun to change control intent")
       if (!canTransition(run.status, command.to))
         return reject("illegal_transition", `${run.status} -> ${command.to} is not allowed`)
       if ((command.to === "failed" || command.to === "timed_out") && command.closeRevision === undefined)
