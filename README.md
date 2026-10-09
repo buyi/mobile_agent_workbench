@@ -2,13 +2,14 @@
 
 以 **OpenCode** 为唯一开源主工程和 Agent 运行时，为 Loopit 建设自主研发工作台。人设定目标与验收标准，系统完成需求、设计、开发、验证、内部交付和运维观察。
 
-当前处于 **M0 实施中，尚未通过阶段验收**。OpenCode 锁定为 `v1.18.35`，底座源码未修改。2026-10-09 最新普通本机回归按 36 个测试文件分别启动独立进程，结果为 **358 通过、0 失败、1 未执行，2,193 条断言**，类型检查通过；本批排除了实际内核/Seatbelt 与网络探测，不代表完整设备和沙盒套件通过。单进程合并执行曾触发 macOS `EXC_GUARD` 文件句柄保护终止，尚未修复，独立进程通过不能覆盖这一稳定性问题。实测范围见 [M0 选型记录与能力矩阵](docs/m0/opencode-adoption.md)及 [检查入口](docs/m0/verification-entry.md)。
+当前处于 **M0 实施中，尚未通过阶段验收**。OpenCode 锁定为 `v1.18.35`，底座源码未修改。工作台开发与测试使用 **Bun 1.4.2**：旧 1.3.14 的额外子进程管道与 SQLite 组合会触发 macOS `EXC_GUARD`，已通过不依赖工作台代码的样本复现；1.4.2 的同组 36 文件单进程回归为 **358 通过、0 失败、1 未执行，2,193 条断言**，四组各 80 轮最小复现也全部通过。已部署的受保护 M0 环境仍需迁移与复验，本机测试不代表完整设备、沙盒或阶段验收。实测范围见 [工具链记录](docs/m0/workbench-toolchain.json)、[能力矩阵](docs/m0/opencode-adoption.md)及 [检查入口](docs/m0/verification-entry.md)。
 
 设备能力复用 **mobile-ui-runtime**，固定提交 `04975ff4e63f3448e19e8c5ec1c6394dd12a1ad1`，许可证 MIT。OpenCode 负责模型与 Agent 循环；mobile-ui-runtime 提供设备会话、语义观察、revision 校验、原子动作、生命周期和取证，其底层 provider 沿用 agent-device。工作台维护外层任务授权、预算、OS 隔离、恢复账本和正式验收证据。接入使用通用核心及 provider，不加载该库的 DSH 插件或模型配置。其协作队列与最佳努力日志不能替代工作台的持久授权、独立恢复日志或设备 OS 独占证明。
 
 实际已跑通 `Delivery → OpenCode 编辑 → Supervisor 停止核对 → 独立 Verifier → Gate → Delivery`：Worker UID420 修改固定函数，Signer UID421 的 **12 个用例通过**，签名及产物绑定核验后任务成功，原失败 Run 保留。成功 Run 有 5 个原生模型步骤、14,583 reported tokens、美元费用 unknown；一次早先派发的用量未知，不能将可观测部分冒充全程总量。此结果只证明代码合同，不是 Loopit 诊断页交付。独立的无模型 [控制矩阵](docs/m0/control-matrix.md)也已通过真实暂停、冷读、显式恢复、取消及双账户停止核对，恢复没有重置截止时间。[控制器失联实验](docs/m0/owner-loss.md)实际杀掉控制器，并证明旧 Worker 尚存活时冷恢复拒绝重复派发；未知执行仍保留隔离，未实现自动解锁。设备 OS 独占、正式设备 Run/Gate、独立故障域恢复与完整阶段证明仍未完成。
 
 ```text
+bun --version  # 工作台要求 1.4.2；setup 在改动链接前核对版本
 git submodule update --init --depth 1 vendor/opencode
 git submodule update --init vendor/mobile-ui-runtime
 (cd vendor/opencode && bun install --frozen-lockfile --filter '@opencode-ai/core' --registry https://registry.npmjs.org --network-concurrency 4)
@@ -19,6 +20,8 @@ bun script/bench.ts verify --suite contract-core --dataset contract-core/1
 bun script/bench.ts verify --suite control-plane
 bun script/bench.ts verify --suite recovery-journal-local
 ```
+
+使用 [Bun 官方发行版本](https://github.com/oven-sh/bun/releases/tag/bun-v1.4.2) 安装所需工具链。本机已校验的独立副本位于 `.bench/toolchains/bun-1.4.2/bun`，可用该路径执行上面的工作台命令；它未覆盖全局 Bun、OpenCode 二进制或 root 已部署的运行环境。上游 `vendor/opencode/package.json` 的历史工具链声明原样保留。
 
 | 目录 | 内容 |
 | --- | --- |

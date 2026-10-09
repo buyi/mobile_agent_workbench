@@ -23,7 +23,7 @@ bun script/bench.ts milestone check --milestone M0 \
 
 注册严格限定索引中的 project/task/Goal revision/Goal digest/验收摘要/Run。2026-10-09 的普通 UID 实测位于 `.bench/m0-fixes/verifier-deployment-cli-actual/`：`exact/result.json` 的 `requestedScopeRegistered=true`、`independentVerifierEstablished=true`；`wrong-run/` 与 `wrong-goal/` 均为 false。三者的 M0 结果仍是 `blocked`，15 项均 `notRun`，因为这次只验证部署接入，没有提交完整阶段清单。固定代码任务的注册不能给其他 M0 或 M1 Goal 背书。信任索引摘要为 `sha256:9f8fb6660e34e9731420fa4f6435aed9e4e8a958245e475fc347d069a4b380be`。
 
-当前改动尚未提交，检查器也会报告 `source_dirty`；一个 HEAD SHA 无法代表未提交源码。输出目录必须全新且与证据及直接输入不相交，避免检查过程覆盖证据。失败后使用新的报告目录复验。
+历史检查时源码尚未提交，报告包含 `source_dirty`；之后提交源码不能追溯改变那次报告的源码身份。一个 HEAD SHA 无法代表未提交源码。输出目录必须全新且与证据及直接输入不相交，避免检查过程覆盖证据。失败后使用新的报告目录复验。
 
 费用政策独立输入，并核对其真实文件 SHA-256 等于冻结目标 `costBudgetRef` 的 pin。用户已允许本次模型实验使用 OAuth 套餐、费用 unknown，政策文件为 [model-experiment-cost.json](model-experiment-cost.json)，没有美元硬上限；60 分钟和最多 3 次修复另由执行预算限制。unknown 保留原义，不能折算成 0 或声称 10 美元封顶已验证。若以后冻结政策含 USD 硬上限，未知费用就不能证明预算满足。
 
@@ -92,6 +92,14 @@ macOS 管理员进程可能无法读取 Documents 中的脚本。账户实验把
 
 唯一未运行项是原版 OpenCode 真实二进制 version/help 的 opt-in 检查；`restricted.test.ts`、`ios-state-adapter.test.mjs` 和 sandbox 套件明确排除，未计入通过。Python 协议 fixture 另有 [65 项历史回归](../../.bench/m0-fixes/python-protocol-regression-v1/counts.json)；之后 live-device probe 的两处修改以 [21 项独立复验及 stage-b 摘要](../../.bench/m0-fixes/worker-live-device-independent-review-b/result.json) 为准，不把旧批次扩大成修改后全部重新实测。两组 Python 检查均未执行管理员或真实设备操作。
 
-失败记录未覆盖：v1 在缺失 JUnit 时解析崩溃，未保存 Bun 的退出码，不能由已打印的通过项推断整套通过。v2 补强 driver 后实际记录到 `SIGKILL`、非超时、无 JUnit；[系统诊断摘录](../../.bench/m0-fixes/checkpoint-validation-crash-diagnostics/result.json) 明确为 `EXC_GUARD / GUARD_TYPE_FD / CLOSE`，不是已证实的 OOM。具体错误关闭的来源仍在定位，尚不能归因于 Bun 或某段应用代码。v3 独立进程回归得到 341/17/1，17 项均因 SSH fixture 的临时路径经过用户目录 ACL 被正确拒绝；移至私有临时目录后 v4 全部通过，生产防护与测试断言未放宽。分别见 [v1 留档说明](../../.bench/m0-fixes/checkpoint-validation-v2/v1-preserved-failure.json)、[v2 失败](../../.bench/m0-fixes/checkpoint-validation-v2/result.json)、[v3 失败](../../.bench/m0-fixes/checkpoint-validation-v3/result.json)。
+失败记录未覆盖：v1 在缺失 JUnit 时解析崩溃，未保存 Bun 的退出码，不能由已打印的通过项推断整套通过。v2 补强 driver 后实际记录到 `SIGKILL`、非超时、无 JUnit；[系统诊断摘录](../../.bench/m0-fixes/checkpoint-validation-crash-diagnostics/result.json) 明确为 `EXC_GUARD / GUARD_TYPE_FD / CLOSE`，不是已证实的 OOM。在该次检查时，错误关闭的来源尚未定位，未归因于 Bun 或某段应用代码；后续独立复现见下一节。v3 独立进程回归得到 341/17/1，17 项均因 SSH fixture 的临时路径经过用户目录 ACL 被正确拒绝；移至私有临时目录后 v4 全部通过，生产防护与测试断言未放宽。分别见 [v1 留档说明](../../.bench/m0-fixes/checkpoint-validation-v2/v1-preserved-failure.json)、[v2 失败](../../.bench/m0-fixes/checkpoint-validation-v2/result.json)、[v3 失败](../../.bench/m0-fixes/checkpoint-validation-v3/result.json)。
 
-新 driver 先保存退出码、信号、超时和执行异常，再解析 JUnit；缺失、损坏、空报告、非零退出和报告与终端统计不一致都失败关闭，另有 5 个真实子进程负例。**文件级回归通过不等于单进程 guarded-fd 崩溃已修复，也不证明长时间生产运行稳定。** 该问题保留为 M0 整体收口前的稳定性缺口。
+新 driver 先保存退出码、信号、超时和执行异常，再解析 JUnit；缺失、损坏、空报告、非零退出和报告与终端统计不一致都失败关闭，另有 5 个真实子进程负例。文件级回归本身没有解决该崩溃；后续定位与工具链对照如下。
+
+## Bun 额外管道缺陷与工作台工具链变更
+
+独立样本只使用 `node:child_process`、`bun:sqlite` 和垃圾回收，没有导入工作台代码。Bun 1.3.14 的无额外管道对照完整运行 80 轮；三种 `stdio[4]` 使用方式分别在 3、10、3 个子进程关闭回执之后触发 `EXC_GUARD / GUARD_TYPE_FD / CLOSE`。完整回归的文件描述符观测还确认，出错编号已被重新用于测试数据库的 WAL 文件。证据见 [最小复现结果](../../.bench/m0-fixes/extra-stdio-minimal-v1/conclusion.json)；未隔离具体的 Bun 原生修复提交，不能把未符号化堆栈说成精确源码定位。
+
+[Bun 1.4 官方说明](https://bun.sh/blog/bun-v1.4) 记录了额外 stdio 描述符重复关闭的修复。使用从官方固定 release 下载并校验 GitHub 资产摘要的 1.4.2，原样样本四模式各 80 轮均完成，320 个子进程退出。未修改项目代码的同组 36 文件单进程回归，首轮 353/0/6；补入原有公开签名归档后第二轮 **358 passed / 0 failed / 1 notRun、2,193 断言**，执行前后源码清单一致。首轮五项签名样本未执行的事实保留，结果不混算。报告见 [版本对照](../../.bench/m0-fixes/bun14-binary-comparison-v1/result.json)。一次尝试清理重复 `destroy()` 的应用层候选仍然崩溃，已完整撤回，没有将无效改动留在 Runtime 中。
+
+因此本仓库开发/测试宿主固定到 Bun 1.4.2，并增加独立子进程的额外管道/SQLite 回归。版本拒绝发生在 `setup` 修改依赖链接之前。官方来源和 macOS arm64 二进制摘要记录在 [workbench-toolchain.json](workbench-toolchain.json)。全局 Bun、OpenCode 的固定源码与二进制、历史 root 安装、旧 Run 与签名均未改写。**受保护环境仍使用旧宿主，必须另行部署新版本并复验控制、停止、恢复和签发链；本次测试不等于已部署修复或长期稳定性验收。**

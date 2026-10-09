@@ -1,10 +1,20 @@
 // Links this repo's node_modules to the pinned OpenCode checkout so that
 // @loopit/* packages share the exact module instances OpenCode core uses
 // (effect, drizzle-orm, @opencode-ai/*). Run after `bun install` in vendor/opencode.
-import { existsSync, lstatSync, mkdirSync, readlinkSync, realpathSync, rmSync, symlinkSync } from "node:fs"
+import { existsSync, lstatSync, mkdirSync, readFileSync, readlinkSync, realpathSync, rmSync, symlinkSync } from "node:fs"
 import { dirname, join, relative } from "node:path"
 
 const root = join(import.meta.dir, "..")
+const packageManager: unknown = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).packageManager
+const version = typeof packageManager === "string" ? /^bun@(\d+\.\d+\.\d+)$/.exec(packageManager)?.[1] : undefined
+if (!version) {
+  console.error("workbench packageManager must pin an exact Bun version")
+  process.exit(2)
+}
+if (Bun.version !== version) {
+  console.error(`workbench Bun version mismatch: expected ${version}, received ${Bun.version}; run setup with the pinned host Bun`)
+  process.exit(2)
+}
 const vendor = join(root, "vendor/opencode")
 const core = join(vendor, "packages/core")
 const nm = join(root, "node_modules")

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { copyFileSync, lstatSync, mkdirSync, mkdtempSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs"
+import { copyFileSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, readlinkSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
@@ -24,6 +24,31 @@ test("fresh setup installs a real tsc command usable through bun run typecheck",
     const failure = run("run", "typecheck")
     expect(failure.exitCode).not.toBe(0)
     expect(failure.stdout.toString()).toContain("TS2322")
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
+})
+
+test("wrong Bun version is refused before dependency checks or existing link changes", () => {
+  const root = mkdtempSync(join(tmpdir(), "loopit-setup-version-test-"))
+  try {
+    mkdirSync(join(root, "script"))
+    mkdirSync(join(root, "node_modules"))
+    copyFileSync(join(import.meta.dir, "../setup.ts"), join(root, "script/setup.ts"))
+    writeFileSync(join(root, "package.json"), JSON.stringify({ packageManager: "bun@0.0.0" }))
+    writeFileSync(join(root, "existing-target"), "preserve existing dependency")
+    symlinkSync("../existing-target", join(root, "node_modules/effect"))
+    // Deliberately no vendor dependencies: the version check must run first.
+    const result = Bun.spawnSync([process.execPath, "script/setup.ts"], {
+      cwd: root, stdout: "pipe", stderr: "pipe",
+      env: { PATH: "/usr/bin:/bin", HOME: root, BUN_RUNTIME_TRANSPILER_CACHE_PATH: "0" },
+    })
+    expect(result.exitCode).toBe(2)
+    expect(result.stderr.toString()).toContain(`workbench Bun version mismatch: expected 0.0.0, received ${Bun.version}`)
+    expect(result.stdout.toString()).toBe("")
+    expect(readdirSync(join(root, "node_modules"))).toEqual(["effect"])
+    expect(readlinkSync(join(root, "node_modules/effect"))).toBe("../existing-target")
+    expect(readFileSync(join(root, "existing-target"), "utf8")).toBe("preserve existing dependency")
   } finally {
     rmSync(root, { recursive: true, force: true })
   }

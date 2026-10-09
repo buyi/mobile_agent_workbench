@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "workbench-toolchain/1",
+  "scope": "development-and-local-contract-tests",
+  "runtime": "bun",
+  "version": "1.4.2",
+  "platform": "darwin-aarch64",
+  "release": "https://github.com/oven-sh/bun/releases/tag/bun-v1.4.2",
+  "asset": "https://github.com/oven-sh/bun/releases/download/bun-v1.4.2/bun-darwin-aarch64.zip",
+  "assetSha256": "90987a3a16d7db556d886ac3d551e7b6d3edf0a1cf43acaed622e8676be1d12f",
+  "binarySha256": "35d20dd0263e5c950194434b925454fdfa9ba6e4467da960410fa05b08a7a5b5",
+  "assetDigestVerifiedAgainstOfficialReleaseMetadata": true,
+  "globalInstallationModified": false,
+  "openCodeSourceOrBinaryModified": false,
+  "protectedM0DeploymentsMigrated": false,
+  "limitations": [
+    "This record identifies the tested macOS arm64 artifact; it is not a production admission or signature.",
+    "Existing protected M0 deployments remain on Bun 1.3.14 and require a separate migration and control/verification regression.",
+    "No M0 milestone or M1 delivery acceptance is established by this toolchain record."
+  ]
+}
