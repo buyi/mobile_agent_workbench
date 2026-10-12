@@ -14,7 +14,23 @@
   "protectedM0DeploymentsMigrated": false,
   "limitations": [
     "This record identifies the tested macOS arm64 artifact; it is not a production admission or signature.",
-    "Existing protected M0 deployments remain on Bun 1.3.14 and require a separate migration and control/verification regression.",
+    "Original protected M0 production routes remain on Bun 1.3.14. New Bun 1.4.2 protected fixtures verify the control matrix and Signer; they do not migrate historical routes or prove every recovery path.",
     "No M0 milestone or M1 delivery acceptance is established by this toolchain record."
-  ]
+  ],
+  "protectedReverification": {
+    "date": "2026-10-12",
+    "controlMatrix": {
+      "jobId": "m0-control-matrix-bun142-20261012a",
+      "status": "passed",
+      "scope": "no-model pause, cold read, resume and cancel under UID420/421"
+    },
+    "signer": {
+      "jobId": "m0-signer-bun142-20261012a",
+      "status": "passed",
+      "scope": "8 conformance groups under UID421; fixed M0-CODE-01 fixture"
+    },
+    "originalProductionRoutesChanged": false,
+    "ownerLossOnNewBunVerified": false,
+    "fullM0Accepted": false
+  }
 }

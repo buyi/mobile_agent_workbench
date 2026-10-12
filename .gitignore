@@ -6,4 +6,8 @@ node_modules/
 .codegraph/
 __pycache__/
 *.pyc
+.DS_Store
 !packages/runtime/README.md
+!packages/verifier/README.md
+!packages/delivery/src/integration/README.md
+!docs/m0/m1-inputs/README.md

@@ -13,7 +13,8 @@
 | effect | 4.0.0-beta.83（OpenCode `bun.lock`） | MIT | schema 与运行时 | 锁定，beta 版本，升级需重跑合同 |
 | drizzle-orm | 1.0.0-rc.2（OpenCode `bun.lock`） | Apache-2.0 | 表定义与查询 | 锁定，RC 版本 |
 | Bun（工作台开发与测试） | 1.4.2，官方固定发行资产，摘要见 [工具链记录](workbench-toolchain.json) | MIT | 编排库、合同及回归测试的宿主 | 本仓库固定版本；同组 36 文件单进程与额外管道/SQLite 样本已验证；本机独立副本，不覆盖全局安装 |
-| Bun（历史受保护 M0 部署） | 1.3.14；上游 OpenCode `packageManager` 原样保留 | MIT | 已归档的模型、Supervisor/Verifier 与控制实验 | 旧部署与证据保持原始版本；新工具链的受保护安装、控制矩阵与签发复验仍待完成 |
+| Bun（历史受保护 M0 部署） | 1.3.14；上游 OpenCode `packageManager` 原样保留 | MIT | 已归档的模型、Supervisor/Verifier 与控制实验 | 旧部署、配置、签名与原路由保持原始版本；整体迁移尚未完成 |
+| Bun（新受保护复验部署） | 1.4.2，与工作台宿主同一固定二进制 | MIT | 两轮无模型控制矩阵及独立 UID421 签发 fixture | 2026-10-12 实际通过暂停/冷读/恢复/取消和 8 组签发正反例；未替换旧路由，未重测新版本的 controller-loss 窗口，不代表 M0 总验收 |
 | typescript | 5.8.2 | Apache-2.0 | 类型检查 | 锁定 |
 | mobile-ui-runtime / `dsh-mobile-ui` | 0.1.0，commit `04975ff4e63f3448e19e8c5ec1c6394dd12a1ad1`，`vendor/mobile-ui-runtime` submodule | MIT（根 LICENSE） | 通用设备会话、语义树、revision/action/diff、共享队列、App Ops 与 Evidence；复用 core/provider，不加载 DSH 插件 | 用户已确认复用；锁定已提交版本，保留原工程未提交改动；可信设备宿主接线和实测仍未完成 |
 | agent-device | 0.21.1，本机既有安装 | MIT | iOS XCTest 设备工具；不运行 Agent 推理循环 | 新增 3 个 Swift 文件的私有补丁，版本及原文件摘要见 `script/m0/ios-runner-state.lock.json`；共享安装不变 |

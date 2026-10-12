@@ -102,4 +102,29 @@ macOS 管理员进程可能无法读取 Documents 中的脚本。账户实验把
 
 [Bun 1.4 官方说明](https://bun.sh/blog/bun-v1.4) 记录了额外 stdio 描述符重复关闭的修复。使用从官方固定 release 下载并校验 GitHub 资产摘要的 1.4.2，原样样本四模式各 80 轮均完成，320 个子进程退出。未修改项目代码的同组 36 文件单进程回归，首轮 353/0/6；补入原有公开签名归档后第二轮 **358 passed / 0 failed / 1 notRun、2,193 断言**，执行前后源码清单一致。首轮五项签名样本未执行的事实保留，结果不混算。报告见 [版本对照](../../.bench/m0-fixes/bun14-binary-comparison-v1/result.json)。一次尝试清理重复 `destroy()` 的应用层候选仍然崩溃，已完整撤回，没有将无效改动留在 Runtime 中。
 
-因此本仓库开发/测试宿主固定到 Bun 1.4.2，并增加独立子进程的额外管道/SQLite 回归。版本拒绝发生在 `setup` 修改依赖链接之前。官方来源和 macOS arm64 二进制摘要记录在 [workbench-toolchain.json](workbench-toolchain.json)。全局 Bun、OpenCode 的固定源码与二进制、历史 root 安装、旧 Run 与签名均未改写。**受保护环境仍使用旧宿主，必须另行部署新版本并复验控制、停止、恢复和签发链；本次测试不等于已部署修复或长期稳定性验收。**
+因此本仓库开发/测试宿主固定到 Bun 1.4.2，并增加独立子进程的额外管道/SQLite 回归。版本拒绝发生在 `setup` 修改依赖链接之前。官方来源和 macOS arm64 二进制摘要记录在 [workbench-toolchain.json](workbench-toolchain.json)。全局 Bun、OpenCode 的固定源码与二进制、历史 root 安装、旧 Run 与签名均未改写。**上述版本对照完成时，受保护环境仍使用旧宿主，需另行部署新版本并复验控制、停止、恢复和签发链；版本对照不等于部署修复或长期稳定性验收。**
+
+## 2026-10-12 后续验证
+
+本轮从提交 `10712cf` 执行，无模型调用。历史报告保留，以下是新增证据：
+
+| 范围 | 实际结果 | 边界 |
+| --- | --- | --- |
+| mobile runtime、设备命令端口与准入 | 24 测试通过，152 断言 | 本机协议验证，未接通正式设备 Task/Run/Gate |
+| Bun 1.4.2 受限执行 | 12 测试通过，68 断言，包含实际 Seatbelt 内核身份探测 | 普通账户的真实 OS profile，不代替完整跨账户部署 |
+| RecoveryJournal 与 OperationLedger | 49 测试通过，471 断言 | 本地及离线 SSH 合同；没有独立主机配置，远端部署未执行 |
+| UID422 临时模拟器与 UID420 绕过负例 | 实际执行，独立审计 52/52 通过 | 默认列表、已知 UDID 重命名、明确私有路径三条 CLI 入口；未证明所有原生 IPC 或正式代理链 |
+| 新 Bun 1.4.2 受保护控制矩阵 | 两轮实际执行，独立审计 118/118 通过 | 新 job 的无模型 fixture；暂停、冷读、恢复、取消、停止及预算不续期，不是全量部署切换 |
+| 新 Bun 1.4.2 受保护签发 | 8 组实际正反例通过，UID421 执行 | 新固定签发 job；原密钥仅路径引用，旧配置/信任注册不变，无 Task/Run 状态转换 |
+
+设备实验使用新的临时 UDID，完成 shutdown/delete/空集检查；UID420、421、422 的进程与服务域均有最终停止证据。原控制器的 pending/maintenance 报告保持原字节，最终解释结合相同 scope/generation 的外层停止证明。原先管理员启动从 Documents 导入 Python 失败；改为固定 `/private/tmp` 工作目录与 Python `-I` 后执行体不变，实验才实际启动。
+
+控制矩阵的新 scope 为 generation 22 和 23。第二轮创建新的 Attempt，截止时间与修复预算未变；原模型 Run 三份文件摘要一致。新安装与旧 Bun 1.3.14 任务并存，不修改旧签名、原信任注册或已经过期的模型预算。
+
+证据分别见 [本轮本机命令](../../.bench/m0-fixes/m0-verification-20261012/commands.json)、[受限执行进程结果](../../.bench/m0-fixes/m0-verification-20261012/restricted-runtime-process.json)、[恢复账本复验](../../.bench/m0-fixes/recovery-journal-recheck-20261012-v1/result.json)、[设备实测审计](../../.bench/m0-fixes/worker-live-device-actual-20261012/independent-audit.json)和[新控制矩阵审计](../../.bench/m0-fixes/bun142-matrix-actual-20261012a/independent-audit.json)。
+
+本次 M0 检查入口仍返回 `blocked`。已有签发部署仅注册原 `M0-CODE-01` Goal/Run；它不能替代涵盖全部 A01–A15 的阶段 Goal、清单和独立签名。正式设备执行链、独立恢复主机及完整阶段证据仍不齐备。隔离的 HOME 还暴露出原全局 Git 忽略规则隐藏的 `.DS_Store` 和三份既有 README，检查器据此记录 `source_dirty`；保留该结果，不将常规用户环境下的 clean 状态冒充该次检查的输入。
+
+仓库忽略规则已补充 `.DS_Store`，并显式纳入三份既有协议/输入 README，使源身份核对不再依赖操作者的全局忽略配置。该修正不改变前一次检查报告。设备端口当前的生产 Task/Run 授权、受保护绑定加载及 UID422 执行器仍需接线；本次 CLI 负例通过不能把 fixture 接线提升为正式交付能力。
+
+新签发 scope 为 generation 24：正常候选通过，错误候选、缺失文件、摘要不符、错误 Run、调用者公钥、重复请求和签名载荷篡改均按预期处理。原配置与受保护输入不变，旧密钥未复制，Worker/Signer 最终均停止。新旧受保护部署并存；本轮没有重测新 Bun 下的 controller-loss 窗口，没有把测试包切换成正式设备执行器，也没有改变旧部署信任注册的作用域。
