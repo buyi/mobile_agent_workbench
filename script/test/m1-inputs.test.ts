@@ -27,7 +27,28 @@ describe("M1 preparation consistency is never admission", () => {
     ["wrong fixture pin", "preparation_reference_mismatch", (x: typeof prepared) => { x.pack.fixtureRef = x.refs["large-text-rubric"] }],
     ["claimed deployment", "unproved_policy_publication", (x: typeof prepared) => { x.policy.publication.protected = true }],
     ["missing authority blocker", "known_admission_blocker_removed", (x: typeof prepared) => {
-      x.policy.admissionBlockers = x.policy.admissionBlockers.filter((id: string) => id !== "independent-journal")
+      x.policy.admissionBlockers = x.policy.admissionBlockers.filter((id: string) => id !== "local-recovery-journal")
+    }],
+    ["bypassing M0 after choosing local SQLite", "known_admission_blocker_removed", (x: typeof prepared) => {
+      x.policy.admissionBlockers = x.policy.admissionBlockers.filter((id: string) => id !== "m0-entry-gate")
+    }],
+    ["requiring a separate host again", "local_journal_authority_changed", (x: typeof prepared) => {
+      x.policy.recoveryJournal.independentHostRequired = true
+    }],
+    ["claiming protected journal deployment", "unproved_journal_publication", (x: typeof prepared) => {
+      x.policy.recoveryJournal.protected = true
+    }],
+    ["allowing worker database writes", "local_journal_recovery_boundary_weakened", (x: typeof prepared) => {
+      x.policy.recoveryJournal.requiredControls.workerDirectDatabaseWriteAllowed = true
+    }],
+    ["dispatch without the current fence", "local_journal_recovery_boundary_weakened", (x: typeof prepared) => {
+      x.policy.recoveryJournal.requiredControls.epochAndGenerationChecked = false
+    }],
+    ["rolling journal back with business state", "local_journal_recovery_boundary_weakened", (x: typeof prepared) => {
+      x.policy.recoveryJournal.requiredControls.restoredWithBusinessSnapshot = true
+    }],
+    ["blindly retrying unknown actions", "local_journal_recovery_boundary_weakened", (x: typeof prepared) => {
+      x.policy.recoveryJournal.requiredControls.unknownRedispatchAllowed = true
     }],
     ["publishing a partial policy", "incomplete_policy_must_not_be_published", (x: typeof prepared) => { x.goal.policyRef = x.refs["execution-policy-preparation"] }],
   ] as const) {

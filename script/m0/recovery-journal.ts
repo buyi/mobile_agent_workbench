@@ -1,9 +1,11 @@
-// Local CLI only. JSON stdin contains exactly one request; stdout one response.
+// Default local SQLite journal CLI. JSON stdin contains exactly one request;
+// stdout one response. Existing databases are opened explicitly, never recreated
+// on failure. Same-host disk loss or rollback of both databases is not covered.
 // bun script/m0/recovery-journal.ts init --db /dedicated/existing-dir/journal.db
 // bun script/m0/recovery-journal.ts admin --db <absolute> --journal-id <trusted-id>
 // bun script/m0/recovery-journal.ts request --db <absolute> --journal-id <trusted-id> --owner-id <trusted-owner>
-// The host/transport must restrict admin access and bind owner-id (e.g. a future
-// forced command). CLI flags and a journal ID are not authentication or isolation.
+// The trusted host must restrict admin access and bind owner-id. CLI flags and a
+// journal ID are not authentication or OS isolation; SSH is an optional transport.
 import { AdminRequestSchema, decode, initializeDatabase, JournalError, JournalStore, RequestSchema } from "../../packages/recovery-journal/src"
 
 async function readRequest(): Promise<unknown> {

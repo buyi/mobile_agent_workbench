@@ -1,6 +1,6 @@
 # M0 选型记录：OpenCode 沿用 / 扩展 / 缺失、BOM 与能力矩阵
 
-更新日期：2026-10-09。对应 [M0-T01](../milestones/m0-contracts-and-integration.md#6-实施切片与依赖) 与 M0-F13 的阶段性输出。本文记录**已实测**与**未验证**的边界；M0 整体尚未 passed，不能据此宣称任何未列为 supported 的能力。
+更新日期：2026-10-13。对应 [M0-T01](../milestones/m0-contracts-and-integration.md#6-实施切片与依赖) 与 M0-F13 的阶段性输出。本文记录**已实测**与**未验证**的边界；M0 整体尚未 passed，不能据此宣称任何未列为 supported 的能力。
 
 本机有限代码任务现已完成真实 `Delivery → OpenCode → 独立 Verifier → Gate → Delivery` 链路，成功 Run 为 `run-46a51a51-d1ce-45f2-83f6-719cc4fc2bb8`。专用 Worker、Supervisor、UID 421 signer 和持久上下文重建均已接通；这一范围内的成功不等于 M0 整阶段通过或 M1 诊断页已实现。
 
@@ -53,7 +53,7 @@ bun script/bench.ts verify --suite control-plane
 | Agent 循环、会话、工具、压缩、子代理 | 原生 | **沿用**（不自研第二套编码循环） | — |
 | OS 沙盒 | 权限交互不构成隔离（官方 SECURITY.md） | **扩展** | `packages/sandbox`：Seatbelt + 专用账户 |
 | 设备 Broker、构建/安装身份、渠道 | 无 | **扩展 / 尚有缺口** | 本机 Broker 租约/fence、安装回执丢失查询、清理失败隔离已真实实验；OS 独占、撤权及正式 Run/Gate 接线未完成 |
-| 独立 Gate 签发、Operation Ledger、独立恢复日志 | 无 | **扩展 / 尚有缺口** | 操作账本、本机独立进程 journal、UID 421 有限签发、控制面验签与 CLI 限定范围部署注册已接通；独立恢复故障域与整阶段完整证据未完成 |
+| 独立 Gate 签发、Operation Ledger、独立恢复日志 | 无 | **扩展 / 尚有缺口** | 操作账本、本机独立进程 journal、UID 421 有限签发、控制面验签与 CLI 限定范围部署注册已接通；本机恢复的正式接线与整阶段完整证据未完成（ADR-0004 已取消异机前置） |
 | 服务接口 | `server/` HTTP API、SDK | 待接入 | 交付命令的 HTTP 暴露在 M1-I01 |
 
 ## 3 能力矩阵（本轮实测范围）
@@ -83,7 +83,7 @@ bun script/bench.ts verify --suite control-plane
 | macOS 账户隔离 | limited | 专用账户已创建并审计；两项明确私有文件的跨账户读取拒绝已测。真实模型 Worker UID 420、Verifier UID 421 已部署，密钥与控制态不归 Worker 所有；与原沙盒套件的所有用例仍不能直接互换 |
 | Linux 沙盒（bubblewrap） | unsupported | 仅保留接口位置 |
 | 设备、构建身份、渠道（M0-F08–F10） | limited（真实本机渠道） | ReleaseTest 包构建/安装身份及替换拒绝已实测；新增真实 Broker 实验只安装 1 次、查询 1 次，回执丢失/查询不可用时拒绝重派，清理失败隔离后卸载并关机。相同 OS UID 仍可直连 simctl，且实验未绑定正式 Run/Gate；见 [设备实验](../../script/m0/IOS-BROKER-EXPERIMENT.md) |
-| 独立进程恢复日志 | limited（本机协议） | `recovery-journal-local`：12/12；进程退出码与成功/拒绝回执一致，FULL 提交后 ACK、fence 推进、并发、回执前 SIGKILL、旧快照重放阻断已测。实际本机安装已使用本机 Journal 核对，仍无独立故障域/受限远端身份，不能满足 A11；见 [协议](../../packages/recovery-journal/PROTOCOL.md) |
+| 独立进程恢复日志 | limited（本机协议） | `recovery-journal-local`：12/12；进程退出码与成功/拒绝回执一致，FULL 提交后 ACK、fence 推进、并发、回执前 SIGKILL、旧快照重放阻断已测。实际本机安装已使用本机 Journal 核对；按 ADR-0004 无需远端身份，正式权限/任务恢复证据仍需汇总，尚不宣称 A11 通过；见 [协议](../../packages/recovery-journal/PROTOCOL.md) |
 | 独立 Gate、上下文重建、计量（M0-F11/F12） | limited（已接有限真实任务） | UID 421 已签发成功候选及 delivery Gate，控制面验签并核对字节；持久上下文重建 ready、事件回放一致，成功 Run token 已记录。CLI 已通过 root 固定索引接入特定 Goal/Run 的部署证明；15 项阶段证据未齐仍 blocked。第二 Run 用量和 USD 费用保持 unknown |
 | 评测入口与安装入口 | supported（工具回归范围） | 脚本回归共 50 项：评测/安装入口 13 项、产物摘要 13 项、阶段 CLI 3 项、iOS 状态适配 21 项；包含真实子进程与回环 HTTP。沙盒禁止端口监听时最后一组不能执行；本机允许监听环境中全部通过。fresh setup 后 `bun run typecheck` 可用 |
 
@@ -133,7 +133,7 @@ bun script/bench.ts verify --suite control-plane
 | M0-A12 | 部分（有限真实任务） | UID 421 的 12 用例、8 组签发正反例、实际签名离线时效/缺失/损坏负例及 CLI 固定部署接入已通过；注册仅限原 Goal/Run，不代表整阶段 Gate。时效接收代码 update9 已安装未执行，旧成功 Run 与新 bundle 分别绑定 |
 | M0-A08 | 部分 | 语义操作、stale guard、前台拒绝已有局部证据；真实 Broker 实验已覆盖入口租约/fence 与清理失败隔离，OS 独占及撤权仍未完成 |
 | M0-A10 | 部分（真实本机安装渠道） | 真实一次安装后丢失回执、查询不可用时不重派、恢复查询核对原操作已通过；仍缺正式 Run/Gate 绑定与完整恢复证明，不因选择本机模拟器渠道而要求远端商店 |
-| M0-A11 | 部分（本机协议） | 独立进程 SQLite journal 的重启、提交后杀进程、旧 fence 与重复派发拒绝已测；实际独立故障域尚未部署，正式验收保持 blocked |
+| M0-A11 | 部分（本机协议） | 独立进程 SQLite journal 的重启、提交后杀进程、旧 fence 与重复派发拒绝已测；2026-10-13 改为本机范围，取消远端主机前置，正式权限/任务/渠道恢复证据仍待收口 |
 | M0-A13 | 部分 | 成功任务从持久记录与实际产物重建上下文 ready，预算与历史 Run 保留；丢弃原生会话、大输出、重复错误与用量/重试归总的整组验收未齐备，未知执行不因重建而授权恢复 |
 | M0-A05/A06 | 部分（本机停止与恢复） | 本地派发与停止协议、专用 UID/setsid 探针及真实停止核对已有证据；外部作业与完整取消/暂停/失联恢复矩阵仍未验收 |
 | M0-A15 | notRun（完整验收） | M1 类型化输入与必需能力尚未全部冻结和实测，不将有限代码任务成功作为 M1 进入门通过 |
@@ -160,7 +160,7 @@ M0 阶段检查入口拒绝缺证据、错误签名、过大结构化证据、�
 | M0 模型实验预算 | **用户已确认**最长 60 分钟、最多 3 次修复；随后明确允许 OAuth 套餐模式，真实 token 计量、美元费用 `unknown`，替换“费用不可可靠获取则停止”。不能声称已验证原先建议的 10 美元封顶；M1 观察窗口仍需形成具体标准 |
 | 交付及恢复范围 | **用户已确认**仅本机 iOS 模拟器 `.app` 产物、安装、验证、卸载或恢复基线包。此选择不免除 T05 的操作核对与恢复实验，也不代表外部内测渠道能力通过 |
 | macOS 专用 Worker / signer 账户 | UID 420 / 421 已创建审计；跨账户文件拒绝、实际 Worker 执行及有限 UID 421 签发均通过。Supervisor 清理专用进程及 user 域，临时 access 副本已移除；CLI 部署证明已按原 Goal/Run 限定注册，整阶段签发仍待完整证据 |
-| 独立恢复日志部署 | 本机协议实现和故障测试已通过；仍需另一台机器或独立存储的明确配置引用，尚未部署，不能用本机第二个数据库冒充独立故障域 |
+| 本机 SQLite 恢复日志 | **用户已确认**不使用第二台主机；复用现有 Journal 与本地 CLI，业务快照和 Journal 分开恢复。SSH 仅保留可选接口，进程/冷启动测试保留原范围，正式接线及正常主机重启证据尚待完成，见 [ADR-0004](../decisions/0004-local-sqlite-recovery.md) |
 | 沙盒方案 | **已定**：macOS Seatbelt + 专用低权限账户（ADR-0003）；完整 conformance 未通过 |
 | 产品模型 Project → Task → Run → Delivery | 公开 API 冻结前确认，不阻塞当前基础实验 |
 

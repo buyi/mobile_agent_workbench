@@ -14,15 +14,17 @@ export interface DispatchIntent {
 }
 export interface JournalAck { intent: DispatchIntent; durable: DurableRef }
 
-/** Trusted integration port, never supplied by a model. A local/in-memory fake
- * cannot establish independent-fault-domain readiness for production. */
+/** Trusted host-configured persistence port, never supplied by a model. The
+ * default local SQLite journal must commit before acknowledging; an in-memory
+ * fake supplies no durability. Host/disk loss requires a separate recovery plan. */
 export interface RecoveryJournal {
   currentAuthority(scopeId: string): Effect.Effect<AuthorityProof, unknown>
   /** Atomically validate the live fence and reserve (scopeId, idempotencyKey),
    * permanently binding that logical identity to operationId and requestDigest.
    * Refuse changed IDs/digests and any second dispatch, including from an old
-   * SQLite snapshot. A globally reused operationId must also be rejected.
-   * Return only after the exact intent is durable outside that SQLite domain. */
+   * business-database snapshot while the journal is retained. A globally reused
+   * operationId must also be rejected. Return only after the exact intent is
+   * committed durably to the configured journal. */
   reserveDispatch(intent: DispatchIntent): Effect.Effect<JournalAck, unknown>
 }
 interface Authority extends AuthorityProof { mode: "ready" | "recovery_only" }
@@ -71,7 +73,8 @@ export const layerWith = (options: Options = {}) => Layer.effect(Service, Effect
   yield* ensureDeliveryDurability(db).pipe(Effect.orDie)
   yield* applyMigrations(db).pipe(Effect.orDie)
   const now = options.now ?? (() => new Date().toISOString())
-  // A new process must contact the external authority even when SQLite says ready.
+  // A new process must recheck the configured journal even when the business
+  // database says ready. Do not infer authority from that cached projection.
   const activated = new Map<string, Fence>()
   const read = (operationId: string) => db.select().from(OperationTable).where(eq(OperationTable.operation_id, operationId)).get().pipe(Effect.orDie)
   const authority = (scopeId: string) => db.select().from(AuthorityTable).where(eq(AuthorityTable.scope_id, scopeId)).get().pipe(

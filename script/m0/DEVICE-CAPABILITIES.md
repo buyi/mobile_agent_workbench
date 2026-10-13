@@ -98,5 +98,7 @@ but ships neither autonomous admission nor an actual UID422 executor.
 
 The already measured broker protocol faults can be reused as protocol evidence;
 the new OS/proxy boundary needs its own limited integration observations. Until
-those exist, A07/A08 and autonomous device dispatch remain incomplete. A11's
-independent RecoveryJournal failure domain remains a separate requirement.
+those exist, A07/A08 and autonomous device dispatch remain incomplete. A11 uses
+a protected local SQLite RecoveryJournal outside the business snapshot (ADR-0004);
+its recovery and formal Task/Run evidence remain separate requirements, with no
+remote-host prerequisite.

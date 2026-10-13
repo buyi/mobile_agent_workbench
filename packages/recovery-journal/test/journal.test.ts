@@ -56,7 +56,7 @@ const parallel = async (f: Fixture, mode: string, bodies: Record<string, unknown
   } finally { clearTimeout(timer); if (child.exitCode === null) child.kill("SIGKILL") }
 }))
 
-describe("standalone SQLite recovery journal — local protocol tests, not M0-A11 isolation evidence", () => {
+describe("default local SQLite recovery journal — process recovery, not host/disk-loss recovery", () => {
   test("a process restart retains authority and the full intent committed before its acknowledgement", () => {
     const f = fixture(), value = intent()
     expect(statSync(f.database).mode & 0o777).toBe(0o600)
@@ -137,10 +137,11 @@ describe("standalone SQLite recovery journal — local protocol tests, not M0-A1
     expect(call(missing, "request", { method: "currentAuthority", scopeId: "channel-1" }).ok).toBe(false)
     expect(existsSync(missing.database)).toBe(false)
   })
-  test("the RecoveryJournal adapter uses a separate process and validates response binding", async () => {
+  test("the default local configuration uses the existing CLI and validates response binding", async () => {
     const f = fixture()
     const transport = localStdioTransport({ cliPath: cli, databasePath: f.database, journalId: f.journalId, ownerId: fence.ownerId })
-    const port = createRecoveryJournal({ journalId: f.journalId, transport })
+    const port = createRecoveryJournal({ journalId: f.journalId,
+      local: { cliPath: cli, databasePath: f.database, ownerId: fence.ownerId } })
     expect((await Effect.runPromise(port.currentAuthority("channel-1"))).fence).toEqual(fence)
     const ack = await Effect.runPromise(port.reserveDispatch(intent()))
     expect(ack.durable.digest).toBe(digestOf(intent()))
@@ -152,6 +153,16 @@ describe("standalone SQLite recovery journal — local protocol tests, not M0-A1
       value: { ...ack, durable: { ...ack.durable, ref: `journal://${f.journalId}/dispatch/another-dispatch#${ack.durable.digest}` } },
     }) })
     await expect(Effect.runPromise(mismatchedAck.reserveDispatch(intent()))).rejects.toThrow()
+  })
+  test("ambiguous or absent transport configuration fails before any invocation", () => {
+    const f = fixture()
+    let calls = 0
+    const local = { cliPath: cli, databasePath: f.database, ownerId: fence.ownerId }
+    const ambiguous = { journalId: f.journalId, local, transport: async () => { calls++; return {} } }
+    // Runtime validation also protects callers without TypeScript checking.
+    expect(() => createRecoveryJournal(ambiguous as never)).toThrow("invalid_transport_configuration")
+    expect(() => createRecoveryJournal({ journalId: f.journalId } as never)).toThrow("invalid_transport_configuration")
+    expect(calls).toBe(0)
   })
   for (const failure of ["exit-2", "sigkill"] as const)
     test(`a valid ACK followed by ${failure} is rejected without retry or reservation`, async () => {

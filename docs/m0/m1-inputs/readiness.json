@@ -1,14 +1,14 @@
 {
   "schemaVersion": "m1-preparation-report/1",
-  "observedAt": "2026-10-09T12:18:12.762Z",
+  "observedAt": "2026-10-13T12:19:42.394Z",
   "status": "blocked",
   "deliveryRunAllowed": false,
   "scope": "Local input preparation only; not a frozen GoalSpec, resource registration, MilestoneManifest, or GateDecision",
   "materialChecks": [
     {
       "id": "confirmed-inputs",
-      "expectedDigest": "sha256:29cc6be5df38d07d37fd6704ff50cdb3502e2e7970040371a1ca7aed9fde7149",
-      "actualDigest": "sha256:29cc6be5df38d07d37fd6704ff50cdb3502e2e7970040371a1ca7aed9fde7149",
+      "expectedDigest": "sha256:75caa47e4b593bf4f176997fbe14060ca1b0c2c256447140003686bf12cce4fb",
+      "actualDigest": "sha256:75caa47e4b593bf4f176997fbe14060ca1b0c2c256447140003686bf12cce4fb",
       "matched": true
     },
     {
@@ -115,8 +115,8 @@
     },
     {
       "id": "execution-policy-preparation",
-      "expectedDigest": "sha256:bf50e5179dc7d98a44f0edea9e053172ed7f2e02a671a6725b64a7d3efa50b73",
-      "actualDigest": "sha256:bf50e5179dc7d98a44f0edea9e053172ed7f2e02a671a6725b64a7d3efa50b73",
+      "expectedDigest": "sha256:86e207da10171d4d5adecdb193b7a3f8c4bdfdadb85433cf446bf0d53c200600",
+      "actualDigest": "sha256:86e207da10171d4d5adecdb193b7a3f8c4bdfdadb85433cf446bf0d53c200600",
       "matched": true
     },
     {
@@ -127,8 +127,8 @@
     },
     {
       "id": "diagnostics-case-pack",
-      "expectedDigest": "sha256:181743fd5d48b03ca2aac9a3d30627630b982a577bbf96ded7ce26e9fffb7f33",
-      "actualDigest": "sha256:181743fd5d48b03ca2aac9a3d30627630b982a577bbf96ded7ce26e9fffb7f33",
+      "expectedDigest": "sha256:c124bb6f8ba9e50c3c13c4630cebb829a0455aa0ff8047ae037121f381445bf0",
+      "actualDigest": "sha256:c124bb6f8ba9e50c3c13c4630cebb829a0455aa0ff8047ae037121f381445bf0",
       "matched": true
     }
   ],
@@ -199,7 +199,7 @@
       "id": "m0-entry-gate",
       "fields": [],
       "owner": "implementation",
-      "reason": "M0 总体尚未通过；RecoveryJournal 的本机进程/离线 SSH transport 不证明独立故障域或远端认证。局部成功不能替代 M0 准入 Gate。"
+      "reason": "M0 总体尚未通过；恢复日志采用用户确认的本机 SQLite，仍须核验受保护身份、权限、fence、持久提交，以及业务快照回滚不回滚 Journal、未知动作不盲目重派。无需独立恢复主机；局部成功仍不能替代 M0 准入 Gate。"
     }
   ],
   "budgetScope": {

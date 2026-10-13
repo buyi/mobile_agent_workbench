@@ -71,11 +71,27 @@ macOS 管理员进程可能无法读取 Documents 中的脚本。账户实验把
 
 ## 本地恢复日志与后续接线
 
-`bun script/bench.ts verify --suite recovery-journal-local` 测试单独 SQLite、真实子进程、fence 推进与重复派发拒绝；受限 SSH transport 另有离线参数/失败测试，未连接远端。这些与 A05/A06 的真实停止、冷恢复拒派，以及本机设备安装回执核对分别保留明确范围。`recovery` 正式套件仍为 blocked，剩余缺口是独立故障域权威与设备 OS 独占副作用边界；把本机另一个目录或复制的数据库称为独立存储不能解除它。
+2026-10-13 用户明确选择本机 SQLite，取消第二台主机、SSH 和独立故障域作为 M0 前置；规范变更见 [ADR-0004](../decisions/0004-local-sqlite-recovery.md)。复用 `packages/recovery-journal` 的现有 JournalStore、单请求 CLI 和本地子进程传输，不另建恢复平台。
 
-独立故障域部署需要明确的另一台主机或独立存储配置引用。目前没有选定或连接这样的存储。上线还需由可信传输固定身份，限制业务方调用管理员命令，确保旧业务快照不能回退权威 fence。真实本机安装的回执丢失核对已按上节实测，但使用同机 Journal，不能填补独立故障域缺口。部署协议见 [RecoveryJournal](../../packages/recovery-journal/PROTOCOL.md)。
+`bun script/bench.ts verify --suite recovery-journal-local` 测试单独 SQLite、真实子进程、fence 推进与重复派发拒绝。Journal 保存派发预约与当前权威；业务数据库恢复旧快照时保留最新 Journal。所有连接要求 WAL/FULL，提交完成才回 ACK；缺日志、回执丢失或外部状态不明时阻断重复派发。SSH 适配及其离线测试保留为可选能力，不要求用户配置远端。
 
-剩余工作包括：设备 Broker 的 OS 独占与撤权、设备渠道实验与正式 Run/Gate 的接线、独立恢复故障域、A01–A15 完整阶段证据与签发、未知模型用量的诚实处理，以及 M1 类型化输入冻结和诊断页实现。有限 Worker 停止、UID 421 签发、部署身份的限定范围注册、上下文重建及成功 Run 的计量已接通；这些局部成功仍不能替代 M0 整体验收。
+这些局部测试与 A05/A06 的真实停止、冷恢复拒派、本机设备安装回执核对分别保留原来的证据范围。`recovery` 正式套件仍为 blocked，剩余工作是受保护本机日志与 Task/Run/渠道的正式接线、设备 OS 独占、A01–A15 完整阶段证据和签发。正常主机重启尚需实测；整机/磁盘损坏后的异机恢复移出本期，不由本机测试推定通过。
+
+旧报告按生成时的规格和源码原字节保留，包括曾因缺独立主机而 blocked 的结果。范围调整不追溯修改旧签名、旧 specDigest 或旧失败记录。M1 类型化输入和诊断页仍需完成；有限代码任务通过不能替代 M0 准入。部署与调用方法见 [RecoveryJournal](../../packages/recovery-journal/PROTOCOL.md)。
+
+### 2026-10-13 本机 SQLite 接入复验
+
+新增 `createRecoveryJournal({ journalId, local: { cliPath, databasePath, ownerId } })`，直接复用已有本地 CLI 与 JournalStore；显式 transport 注入继续兼容，两种配置不得同时提供。没有新建第二套存储、自动初始化丢失的日志或给未知动作添加重试。
+
+| 验证 | 实际结果 | 范围 |
+| --- | --- | --- |
+| 全部 `recovery-journal-local` | 33 passed / 0 failed / 0 notRun | 包含原本地协议、可选 SSH 离线兼容及新增真实本地 CLI → OperationLedger 接入；没有远端连接 |
+| 本机 Journal 与 Ledger 定向回归 | 36 passed / 0 failed，429 断言 | 与上一行有重叠，不累加；提交后许可、丢 ACK 后冷重启/推进 fence 仍不重派，缺 DB/错误身份拒绝 |
+| M1 输入一致性 | 17 passed / 0 failed，47 断言 | 本机策略和引用已更新；不允许删除 M0 Gate、回滚 Journal、关闭 fence 或盲重派 |
+| TypeScript | 通过 | 修改后的代码与输入校验可编译 |
+| M1 准备报告 | exit 2 / blocked | 材料、引用和 Case Pack 一致，受保护发布与阶段准入仍未完成，`deliveryRunAllowed=false` |
+
+本机报告：[完整 Journal 套件](../../.bench/m0-fixes/local-sqlite-full-suite-20261013/journal/result.json)、[本机工厂与 Ledger](../../.bench/m0-fixes/local-sqlite-default-20261013/result.json)、[M1 输入与旧 readiness 归档](../../.bench/m0-fixes/local-sqlite-policy-20261013/result.json)。本次没有模型、管理员、真实设备或 SSH 连接操作，没有重启这台 Mac，未修改现有受保护运行部署。本机恢复接入已验证，完整 M0 仍待正式链路与阶段证据收口。
 
 ## 最新本地回归快照与稳定性缺口
 
@@ -105,6 +121,8 @@ macOS 管理员进程可能无法读取 Documents 中的脚本。账户实验把
 因此本仓库开发/测试宿主固定到 Bun 1.4.2，并增加独立子进程的额外管道/SQLite 回归。版本拒绝发生在 `setup` 修改依赖链接之前。官方来源和 macOS arm64 二进制摘要记录在 [workbench-toolchain.json](workbench-toolchain.json)。全局 Bun、OpenCode 的固定源码与二进制、历史 root 安装、旧 Run 与签名均未改写。**上述版本对照完成时，受保护环境仍使用旧宿主，需另行部署新版本并复验控制、停止、恢复和签发链；版本对照不等于部署修复或长期稳定性验收。**
 
 ## 2026-10-12 后续验证
+
+本节保留 2026-10-12 当时的结果及缺口。2026-10-13 用户已取消独立恢复主机要求，当前本机 SQLite 范围以上节和 ADR-0004 为准；原实验及报告未重写。
 
 本轮从提交 `10712cf` 执行，无模型调用。历史报告保留，以下是新增证据：
 

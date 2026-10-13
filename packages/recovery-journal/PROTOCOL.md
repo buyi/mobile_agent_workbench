@@ -1,6 +1,12 @@
-# Recovery journal 本地协议切片
+# Recovery journal：本机 SQLite 恢复账本
 
-本包实现单个权威 SQLite journal 与单请求 CLI，尚未部署另一台主机。`localStdioTransport` 每次调用独立 Bun 进程，但数据库仍在当前机器；这些测试不证明独立故障域，也不满足 M0-A11。
+本包实现单个权威 SQLite journal 与单请求 CLI。按 2026-10-13 用户决定，M0 默认使用本机 SQLite，不再要求另一台主机或 SSH；见 [ADR-0004](../../docs/decisions/0004-local-sqlite-recovery.md)。`localStdioTransport` 每次调用独立 Bun 进程，复用现有存储与协议。
+
+Journal 与 OpenCode/Delivery 业务库是同机的不同文件：业务库保存任务和执行状态，Journal 保存派发预约及当前 owner/generation/epoch。恢复旧业务快照时必须保留最新 Journal；不得连同工作副本清理、覆盖或回滚它。Journal 应存放在可信宿主管理的持久数据目录，Worker 不能直接写入。缺失、损坏或无法确认新旧的 Journal 不能自动重建后继续派发，必须保留 recovery-only 并核对已有动作。
+
+本期恢复范围为进程崩溃、应用冷重启及保留最新 Journal 的业务快照恢复。正常主机重启需另留实测证据；硬件断电、整机/磁盘损坏后的异机恢复不在本期验收范围。本地测试是 M0-A11 的协议证据，仍须与正式任务/渠道、权限和阶段证据接线，不能仅因取消远端要求就把该项标为通过。
+
+可信宿主可用 `createRecoveryJournal({ journalId, local: { cliPath, databasePath, ownerId } })` 直接接入本机路线；三个路径/身份参数由宿主配置，`cliPath` 和 `databasePath` 须为绝对路径。工厂复用已有 `localStdioTransport`，不自动初始化丢失的数据库、不重试或回退到其他存储。现有显式 `transport` 注入保持兼容，`local` 和 `transport` 只能选一个。
 
 每个连接设置并核对 `synchronous=FULL`，使用 WAL、5 秒 SQLite busy timeout，并启用 `fullfsync` / `checkpoint_fullfsync`。所有变更使用同步 `BEGIN IMMEDIATE` 事务；只有 COMMIT 返回后才产生成功响应。尚未做断电、磁盘故障或跨机器恢复实验，存储设备实际耐久性不能由这些设置替代证明。
 
@@ -36,7 +42,9 @@ bun script/m0/recovery-journal.ts request --db /absolute/dedicated/journal.db --
 
 `request` 模式拒绝管理员方法；`owner-id` 必须由可信传输绑定，不能来自模型或请求体。**CLI 参数不是认证机制。** 上线时必须由管理员/Worker 不同系统身份、数据库文件权限及受限传输命令建立访问边界，防止 Worker 改变 owner 参数、调用 admin 或直接修改数据库。本地同用户调用仅用于协议验证。
 
-## 受限 SSH stdio 适配：尚无远端部署证据
+## 可选的受限 SSH stdio 适配（非 M0 前置）
+
+以下保留已有扩展接口，默认本机路线不使用它，也不需要提供主机、账户或密钥。远端能力尚未部署或验收。
 
 `sshStdioTransport(config)` 可注入现有 `createRecoveryJournal({ journalId, transport })`。配置由可信宿主在模型/工具请求之外冻结，结构为 `SshStdioConfig`（`src/ssh.ts`）：
 
@@ -62,7 +70,7 @@ bun script/m0/recovery-journal.ts request --db /absolute/dedicated/journal.db --
 
 stdout上限128 KiB，stderr只做16 KiB计数并丢弃内容；超时、截断/无效JSON、输出过大、任何非零退出或signal、返回错误、request/journal/intent/ref/fence不匹配均不交付许可。即使 stdout 已有合法ACK，后续非零退出也保持不确定。还会经过现有 RecoveryJournal 端口的完整绑定验证。超时只终止本地SSH进程，不能推断远端未COMMIT，禁止自动重试或凭失败重新预约。
 
-离线测试将 SSH 启动点替换成真实本机 fixture 子进程，另用系统 `ssh -G -F none` 仅解析固定选项；不连接网络、不启动sshd、不读取个人SSH配置、未使用真实私钥。这只证明客户端接线/失败关闭，不证明远端 host key、强制命令、凭据权限、存储耐久性或独立故障域；**M0-A11仍未满足**。未来资源提供后必须实际验证远端身份/权限、ACK丢失、旧业务快照、旧token及journal恢复策略，才能注册相应能力。
+离线测试将 SSH 启动点替换成真实本机 fixture 子进程，另用系统 `ssh -G -F none` 仅解析固定选项；不连接网络、不启动sshd、不读取个人SSH配置、未使用真实私钥。这只证明客户端接线/失败关闭，不证明远端 host key、强制命令、凭据权限、存储耐久性或独立故障域。未来若启用远端路线，必须实际验证远端身份/权限、ACK丢失、旧业务快照、旧token及journal恢复策略，才能注册远端能力；这些远端实验不阻塞本期本机 SQLite 路线。
 
 ## 派发与恢复语义
 
@@ -70,6 +78,6 @@ stdout上限128 KiB，stderr只做16 KiB计数并丢弃内容；超时、截断/
 - 所有重复派发都拒绝，包括完全相同的 dispatchId；改 operationId、改摘要、恢复旧业务数据库、推进 epoch 都不能清空预约。没有删除、取消预约或自动重试接口。
 - JournalAck 包含完整 intent；`durable.digest` 为其 canonical JSON 的 SHA-256，SQLite 保存相同 canonical JSON。客户端检查 requestId、journalId、intent、引用及摘要绑定。
 - 进程退出或响应丢失意味着结果未知；先核对，不能以重新请求 journal 取得第二个许可。服务不查询真实渠道，因此没有把 journal 记录当作业务成功回执的接口。
-- `journalId` 检测误接不同初始化的数据库。**复制或回滚 journal 自身会保留 ID**，不能据此发现副本或证明远端权威性。不得把 journal 与业务 SQLite 一起回滚；其备份恢复、旧主机停用和凭据撤销仍需外部部署流程和实验。
+- `journalId` 检测误接不同初始化的数据库。**复制或回滚 journal 自身会保留 ID**，不能据此发现副本。不得把 journal 与业务 SQLite 一起回滚；备份副本不自动成为可派发的当前权威。Journal 自身丢失/回退时停止副作用，先核对外部事实和旧执行者，不能仅换 ID 或推进 epoch 就声称已恢复。
 
 运行 `bun test packages/recovery-journal/test` 可验证本地重启、五进程竞争、提交后回执前 SIGKILL、旧业务状态重放和 fence 推进；不操作真实设备或发布渠道。

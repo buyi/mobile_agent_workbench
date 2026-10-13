@@ -4,11 +4,13 @@
 
 当前处于 **M0 实施中，尚未通过阶段验收**。OpenCode 锁定为 `v1.18.35`，底座源码未修改。工作台开发与测试使用 **Bun 1.4.2**：旧 1.3.14 的额外子进程管道与 SQLite 组合会触发 macOS `EXC_GUARD`，已通过不依赖工作台代码的样本复现；1.4.2 的同组 36 文件单进程回归为 **358 通过、0 失败、1 未执行，2,193 条断言**，四组各 80 轮最小复现也全部通过。原有受保护 M0 部署的整体迁移与复验尚未完成，本机测试不代表完整设备、沙盒或阶段验收。实测范围见 [工具链记录](docs/m0/workbench-toolchain.json)、[能力矩阵](docs/m0/opencode-adoption.md)及 [检查入口](docs/m0/verification-entry.md)。
 
+2026-10-13 用户已确定：**恢复记录直接使用本机 SQLite，不需要第二台主机或 SSH**。复用已有 JournalStore 与本地 CLI，Journal 独立于业务快照保存；进程崩溃、冷重启与旧业务快照恢复纳入本期，正常主机重启需实测，整机/磁盘损坏后的异机恢复不纳入本期。详见 [ADR-0004](docs/decisions/0004-local-sqlite-recovery.md)。
+
 设备能力复用 **mobile-ui-runtime**，固定提交 `04975ff4e63f3448e19e8c5ec1c6394dd12a1ad1`，许可证 MIT。OpenCode 负责模型与 Agent 循环；mobile-ui-runtime 提供设备会话、语义观察、revision 校验、原子动作、生命周期和取证，其底层 provider 沿用 agent-device。工作台维护外层任务授权、预算、OS 隔离、恢复账本和正式验收证据。接入使用通用核心及 provider，不加载该库的 DSH 插件或模型配置。其协作队列与最佳努力日志不能替代工作台的持久授权、独立恢复日志或设备 OS 独占证明。
 
-2026-10-12 已新增真实验证：专用账户的临时模拟器生命周期与三条 CLI 绕过负例通过，独立审计 52/52；新 Bun 1.4.2 受保护部署的暂停、冷读、恢复、取消通过，独立审计 118/118。新受保护签发部署的 8 组正反例也已实际通过。本轮本机设备协议、受限执行及恢复账本合计 85 项测试通过。正式设备 Task/Run/Gate、独立恢复主机与完整 M0 证明仍未就绪，详见 [本轮验证范围](docs/m0/verification-entry.md#2026-10-12-后续验证)。
+2026-10-12 已新增真实验证：专用账户的临时模拟器生命周期与三条 CLI 绕过负例通过，独立审计 52/52；新 Bun 1.4.2 受保护部署的暂停、冷读、恢复、取消通过，独立审计 118/118。新受保护签发部署的 8 组正反例也已实际通过。本轮本机设备协议、受限执行及恢复账本合计 85 项测试通过。正式设备 Task/Run/Gate、本机恢复接线与完整 M0 证明仍未就绪，详见 [本轮验证范围](docs/m0/verification-entry.md#2026-10-12-后续验证)。
 
-实际已跑通 `Delivery → OpenCode 编辑 → Supervisor 停止核对 → 独立 Verifier → Gate → Delivery`：Worker UID420 修改固定函数，Signer UID421 的 **12 个用例通过**，签名及产物绑定核验后任务成功，原失败 Run 保留。成功 Run 有 5 个原生模型步骤、14,583 reported tokens、美元费用 unknown；一次早先派发的用量未知，不能将可观测部分冒充全程总量。此结果只证明代码合同，不是 Loopit 诊断页交付。独立的无模型 [控制矩阵](docs/m0/control-matrix.md)也已通过真实暂停、冷读、显式恢复、取消及双账户停止核对，恢复没有重置截止时间。[控制器失联实验](docs/m0/owner-loss.md)实际杀掉控制器，并证明旧 Worker 尚存活时冷恢复拒绝重复派发；未知执行仍保留隔离，未实现自动解锁。设备 OS 独占、正式设备 Run/Gate、独立故障域恢复与完整阶段证明仍未完成。
+实际已跑通 `Delivery → OpenCode 编辑 → Supervisor 停止核对 → 独立 Verifier → Gate → Delivery`：Worker UID420 修改固定函数，Signer UID421 的 **12 个用例通过**，签名及产物绑定核验后任务成功，原失败 Run 保留。成功 Run 有 5 个原生模型步骤、14,583 reported tokens、美元费用 unknown；一次早先派发的用量未知，不能将可观测部分冒充全程总量。此结果只证明代码合同，不是 Loopit 诊断页交付。独立的无模型 [控制矩阵](docs/m0/control-matrix.md)也已通过真实暂停、冷读、显式恢复、取消及双账户停止核对，恢复没有重置截止时间。[控制器失联实验](docs/m0/owner-loss.md)实际杀掉控制器，并证明旧 Worker 尚存活时冷恢复拒绝重复派发；未知执行仍保留隔离，未实现自动解锁。设备 OS 独占、正式设备 Run/Gate、本机恢复的完整证据与阶段证明仍未完成。
 
 ```text
 bun --version  # 工作台要求 1.4.2；setup 在改动链接前核对版本
@@ -31,7 +33,7 @@ bun script/bench.ts verify --suite recovery-journal-local
 | `vendor/mobile-ui-runtime` | 锁定的移动设备工具库（submodule），复用通用核心、动作语义和 provider；原独立工作区的未提交改动不纳入 |
 | `packages/contracts` | GoalSpec、StageResult、Evidence、GateDecision 等合同 schema、交叉校验与固定样本 |
 | `packages/delivery` | 基于 OpenCode `EventV2` 与 SQLite 的交付状态、outbox、操作账本及 Runtime 派发接线；事务迁移及 FULL 耐久配置 |
-| `packages/recovery-journal` | 我们维护的恢复日志协议、独立 SQLite/CLI 实现与故障测试；尚未部署独立机器 |
+| `packages/recovery-journal` | 我们维护的本机 SQLite 恢复日志、CLI 与故障测试；独立文件不随业务快照回退，SSH 为可选扩展 |
 | `packages/sandbox` | Worker 沙盒接口与 macOS Seatbelt 后端；已部署专用 Worker/Signer，设备直连隔离仍需补齐 |
 | `packages/runtime` | 我们维护的 OpenCode CLI 生命周期接线、执行预算与停止核对；直接沿用原生 Agent 循环 |
 | `packages/verifier` | 独立验证、签名消费及固定 root 部署信任接入；当前真实签发器只覆盖固定代码合同 |
@@ -44,6 +46,7 @@ bun script/bench.ts verify --suite recovery-journal-local
 - [OpenCode 选型决策](docs/decisions/0001-opencode-base.md)
 - [交付状态存储决策](docs/decisions/0002-delivery-state-on-opencode-store.md)
 - [macOS Worker 沙盒决策](docs/decisions/0003-macos-worker-sandbox.md)
+- [本机 SQLite 恢复范围决策](docs/decisions/0004-local-sqlite-recovery.md)
 - [M0 选型记录与能力矩阵](docs/m0/opencode-adoption.md)
 - [iOS 构建与安装实验](docs/m0/ios-simulator.md)
 - [阶段检查入口与账户实验](docs/m0/verification-entry.md)

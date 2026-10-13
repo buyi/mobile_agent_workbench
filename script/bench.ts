@@ -31,7 +31,7 @@ const suites: Record<string, Suite> = {
       : { blocked: "Seatbelt conformance requires a macOS host (run as loopit-worker, see script/macos/setup-worker.sh)" },
   "runtime-contract": { blocked: "M0-T03 suite aggregation is not implemented: separate deployed reports prove bounded OpenCode delivery, Supervisor UID/process-tree stop, A05 controls and A06 unknown-owner rejection; see docs/m0/control-matrix.md and docs/m0/owner-loss.md. They do not establish general automatic recovery of unknown execution" },
   "device-contract": { blocked: "M0-T04 incomplete: operator UI probes and a local durable Broker install/reconcile experiment are recorded; OS-exclusive device ownership/revocation and channel binding to a formal Run/Gate remain unverified" },
-  recovery: { blocked: "M0-T05/T07 incomplete: local ledger, separate-process journal and bounded deployed stop/replay/reconcile cases are covered; independent failure-domain authority and OS-exclusive device side-effect control are not established" },
+  recovery: { blocked: "M0-T05/T07 incomplete: local SQLite journal is the selected recovery authority; formal Task/Run/channel recovery evidence, protected journal access and OS-exclusive device side-effect control still need integration. No remote host is required (ADR-0004)" },
   "autonomy-e2e": { blocked: "M1 suite: requires a frozen M1 GoalSpec" },
   "daily-scenarios": { blocked: "M2 suite" },
   "self-improvement": { blocked: "M3 suite" },

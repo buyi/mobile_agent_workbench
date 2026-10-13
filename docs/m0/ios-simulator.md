@@ -118,7 +118,7 @@ XCTest 状态异步更新；连续采样不构成 OS 原子焦点保证，也不
 
 ## 尚未证明的能力
 
-- 随后的 [本机 Broker 协议实验](../../script/m0/IOS-BROKER-EXPERIMENT.md) 已实测持久租约、generation/epoch、回执丢失核对、清理隔离和最终卸载关机；它仍是操作者权限下的有限实验，同机 Journal 不满足独立故障域。
+- 随后的 [本机 Broker 协议实验](../../script/m0/IOS-BROKER-EXPERIMENT.md) 已实测持久租约、generation/epoch、回执丢失核对、清理隔离和最终卸载关机；它仍是操作者权限下的有限实验，不能证明正式权限及 Run/Gate；按 2026-10-13 ADR-0004，同机 SQLite Journal 已是选定路线，不再要求独立故障域。
 - 安装、语义操作与前台拒绝各有局部证据；设备 OS 独占，以及这些结果在正式 Task/Run 下的统一绑定尚未完成。当前 [设备能力入口](../../script/m0/DEVICE-CAPABILITIES.md) 会拒绝该资源的自主任务派发，实验 scope 不是 OS 独占授权。
 - 没有远端渠道发布或 TestFlight 实验，也没有独立身份签发的 InstallReceipt / GateDecision。
 - 真实模型编辑实验只修复临时函数；诊断信息页属于 M1，尚未开发。

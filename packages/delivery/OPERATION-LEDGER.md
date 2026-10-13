@@ -1,6 +1,6 @@
 # 本地 Operation Ledger 接入边界
 
-本切片复用同一 OpenCode SQLite 数据库、迁移与事务能力，没有新增调度器。`loopit_operation` 保存逻辑动作和审计历史，`loopit_operation_authority` 保存最近核对过的资源范围与 owner/generation/epoch。它们都是本地状态，不构成独立故障域。
+本切片复用同一 OpenCode SQLite 数据库、迁移与事务能力，没有新增调度器。`loopit_operation` 保存逻辑动作和审计历史，`loopit_operation_authority` 保存最近核对过的资源范围与 owner/generation/epoch。按 [ADR-0004](../../docs/decisions/0004-local-sqlite-recovery.md)，恢复权威使用同机、独立于业务快照的 SQLite Journal；不要求另一台机器。
 
 入口：`OperationLedger.layerFromPath(databasePath, { journal })`。与已有 Delivery 在同一进程组合时，也可使用 `OperationLedger.layerWith({ journal })` 并提供已有 `Database.Service`。
 
@@ -22,13 +22,13 @@
 `RecoveryJournal` 必须由可信集成代码注入，不能由模型提供。未接入时，activate 与派发都拒绝。
 
 - `currentAuthority(scopeId)` 从独立于待恢复 SQLite 的授权边界返回实时 fence 和持久证据引用。不能从这份 SQLite 复制 epoch 并当成外部权威。旧备份恢复的 epoch 签发与旧权限撤销属于该边界。
-- `reserveDispatch(intent)` 必须在外部原子校验当前 fence，以 `(scopeId, idempotencyKey)` 为不可换号的逻辑身份，绑定 operationId、requestDigest 和完整 intent；同时维护 operationId 的全局唯一性。即使调用方恢复到尚未记录该动作的旧 SQLite 快照，换 operationId、requestDigest、dispatchId 或 owner/epoch，也必须拒绝该逻辑身份的第二次派发；只有完全相同的 intent 重送可以返回原有回执。不同 scope 的同名幂等键相互独立。
-- 只有在独立故障域完成持久化后才能返回 JournalAck；`durable.digest` 必须对应完整 DispatchIntent 的 `digestOf`，其中包括请求引用、请求摘要、幂等键、scope、dispatchId 和 fence。
+- `reserveDispatch(intent)` 必须在外部原子校验当前 fence，以 `(scopeId, idempotencyKey)` 为不可换号的逻辑身份，绑定 operationId、requestDigest 和完整 intent；同时维护 operationId 的全局唯一性。即使调用方恢复到尚未记录该动作的旧 SQLite 快照，换 operationId、requestDigest、dispatchId 或 owner/epoch，也必须拒绝该逻辑身份的第二次派发；现有本机 Journal 对完全相同的 intent 重送也拒绝，不发第二份派发许可。不同 scope 的同名幂等键相互独立。
+- 只有在本机独立 Journal 文件中以 FULL 完成事务提交后才能返回 JournalAck；Journal 不随业务快照恢复而回退。`durable.digest` 必须对应完整 DispatchIntent 的 `digestOf`，其中包括请求引用、请求摘要、幂等键、scope、dispatchId 和 fence。
 - request、authority proof、journal ack 和 provider receipt 中的 DurableRef 如带 `#sha256:…`，pin 必须等于同一对象的 `digest`；相互矛盾的引用不能作为许可或核对证据。
 - 端口失败、回执丢失或摘要不匹配时，不返回 permit。崩溃可能留下 `phase=awaiting_journal`；它同样阻断再次派发，恢复后必须核对。
 - 可信执行代理仍须在真正执行副作用时校验 fence，携带 operationId/幂等键，并撤销旧 owner 的直连权限。这里返回 permit 不等于真实设备、渠道已经接受或执行命令。
 
-端口声明和 URI 本身不能证明独立性；需要真实部署、凭据边界、持久化和恢复实验。本包没有提供生产 journal 实现、独立授权服务、日志重放程序或设备/发布执行代理，因此不满足 M0-A11 的整体验收。
+端口声明和 URI 本身不能证明访问边界；需要真实文件权限、可信宿主接线、持久化和恢复实验。生产实现复用 `packages/recovery-journal` 的本机 SQLite/CLI，SSH 仅为可选适配。正式设备/渠道执行、权限及阶段证明仍须接通，局部测试不等于 M0-A11 整体验收；整机或磁盘损坏后的异机恢复移出本期范围。
 
 ## 有意保留的限制
 

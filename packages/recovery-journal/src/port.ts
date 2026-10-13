@@ -6,12 +6,30 @@ import { Id } from "../../contracts/src/common"
 import type { RecoveryJournal } from "../../delivery/src/operation-ledger"
 import { AuthorityProofSchema, decode, JournalAckSchema, JournalError, ResponseSchema, validPin, type Request } from "./protocol"
 
-/** Transport and journal identity are trusted operator configuration. No retries:
- * a transport failure may mean COMMIT succeeded but the acknowledgement was lost. */
-export function createRecoveryJournal(options: { journalId: string; transport: (request: Request) => Promise<unknown> }): RecoveryJournal {
+export interface LocalJournalConfiguration {
+  cliPath: string
+  databasePath: string
+  ownerId: string
+  timeoutMs?: number
+}
+export type RecoveryJournalOptions = { journalId: string } & (
+  { local: LocalJournalConfiguration; transport?: never } |
+  { transport: (request: Request) => Promise<unknown>; local?: never }
+)
+
+/** Local SQLite is the default configured path; an explicit transport is optional.
+ * Paths, owner and journal identity are trusted host configuration, never request
+ * fields. Neither path auto-creates a database, retries, nor falls back: a failed
+ * transport may mean COMMIT succeeded but the acknowledgement was lost. */
+export function createRecoveryJournal(options: RecoveryJournalOptions): RecoveryJournal {
   decode(Id, options.journalId)
+  if ((options.local !== undefined) === (options.transport !== undefined)) throw new JournalError("invalid_transport_configuration")
+  const transport = options.local !== undefined
+    ? localStdioTransport({ ...options.local, journalId: options.journalId })
+    : options.transport
+  if (typeof transport !== "function") throw new JournalError("invalid_transport_configuration")
   const call = async (request: Request) => {
-    const response = decode(ResponseSchema, await options.transport(request))
+    const response = decode(ResponseSchema, await transport(request))
     if (response.journalId !== options.journalId || response.requestId !== request.requestId) throw new JournalError("response_binding_mismatch")
     if (!response.ok) throw new JournalError(response.error.code)
     return response.value
@@ -35,9 +53,10 @@ export function createRecoveryJournal(options: { journalId: string; transport: (
   }
 }
 
-/** Local subprocess transport for conformance tests and trusted local integration.
- * This does not establish an independent host, credential or fault domain. */
-export function localStdioTransport(options: { cliPath: string; databasePath: string; journalId: string; ownerId: string; timeoutMs?: number }) {
+/** Default local SQLite transport. Each request opens the existing JournalStore
+ * in a bounded subprocess. Survives process restart, not host/disk loss or a
+ * coordinated rollback of both the business database and this journal. */
+export function localStdioTransport(options: LocalJournalConfiguration & { journalId: string }) {
   if (!isAbsolute(options.cliPath) || !isAbsolute(options.databasePath)) throw new JournalError("absolute_path_required")
   decode(Id, options.journalId); decode(Id, options.ownerId)
   const timeoutMs = options.timeoutMs ?? 10_000

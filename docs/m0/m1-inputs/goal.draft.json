@@ -20,7 +20,7 @@
       "scripts/architecture/legacy-bridges.json"
     ],
     "inputRefs": [
-      "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/confirmed-inputs.json#sha256:29cc6be5df38d07d37fd6704ff50cdb3502e2e7970040371a1ca7aed9fde7149",
+      "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/confirmed-inputs.json#sha256:75caa47e4b593bf4f176997fbe14060ca1b0c2c256447140003686bf12cce4fb",
       "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/ios-local-podspec-checksums.patch#sha256:46d6ef18db0b471635c77bd4cdab2dc7feb64ee8abe91282764f8c6107a437f0",
       "file:///Users/buyi/Documents/bench/.bench/m0-fixes/ios-preflight.json#sha256:0e1ab84eb5728b550a033f6a4d0deb4eeece6cf90676b3374c56d7d53e60f08d",
       "file:///Users/buyi/Documents/bench/.bench/m0-fixes/ios-simulator-install-v2/build-inventory.json#sha256:7d1364bb016a1d9f1bfe179473fa347a6642d3d8be35feb0548201863443fa3f",
@@ -36,9 +36,9 @@
       "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/implementation-scope.json#sha256:6672acceaec98830cae64cd977198236966d46467e48d0c54963bd420e82eb82",
       "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/cost-policy.json#sha256:c350cfe87c407bff0e521ef9bd2b3c76afbc9892b4cce7388cc74bd263677f32",
       "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/large-text-rubric.json#sha256:a11af73382d415a189f595c869c0a42b4444b61ed0696715cceaea3a117892e9",
-      "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/execution-policy.draft.json#sha256:bf50e5179dc7d98a44f0edea9e053172ed7f2e02a671a6725b64a7d3efa50b73",
+      "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/execution-policy.draft.json#sha256:86e207da10171d4d5adecdb193b7a3f8c4bdfdadb85433cf446bf0d53c200600",
       "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/diagnostics-fixtures.json#sha256:fed0adcf8d10d3618b3edd04253a0bc2d9de18b2ebbac104fa91c21a4a7f5037",
-      "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/diagnostics-case-pack.json#sha256:181743fd5d48b03ca2aac9a3d30627630b982a577bbf96ded7ce26e9fffb7f33"
+      "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/diagnostics-case-pack.json#sha256:c124bb6f8ba9e50c3c13c4630cebb829a0455aa0ff8047ae037121f381445bf0"
     ],
     "excluded": [
       "新增账号或 token 信息的展示、复制",
@@ -133,7 +133,7 @@
   "resources": {
     "fixtureRefs": [
       "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/diagnostics-fixtures.json#sha256:fed0adcf8d10d3618b3edd04253a0bc2d9de18b2ebbac104fa91c21a4a7f5037",
-      "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/diagnostics-case-pack.json#sha256:181743fd5d48b03ca2aac9a3d30627630b982a577bbf96ded7ce26e9fffb7f33"
+      "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/diagnostics-case-pack.json#sha256:c124bb6f8ba9e50c3c13c4630cebb829a0455aa0ff8047ae037121f381445bf0"
     ]
   },
   "budgets": {

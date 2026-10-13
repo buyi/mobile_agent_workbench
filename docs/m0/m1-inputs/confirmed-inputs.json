@@ -78,6 +78,12 @@
       },
       "m0DeadlineExtended": false,
       "startsOnlyAfterM0Passes": true
+    },
+    "recoveryJournal": {
+      "confirmedOn": "2026-10-13",
+      "storage": "local-sqlite",
+      "independentHostRequired": false,
+      "source": "User explicitly chose local SQLite for the recovery journal in this task; a separate recovery host is no longer required."
     }
   },
   "technicalObservations": {
@@ -118,7 +124,8 @@
     "observationDefaults": "30 minutes and 10 complete paths were explicitly confirmed for M1 in the latest reply. Observe foreground/liveness once per path (10 health observations) as the implementation mapping, not an extra independently requested health-probe threshold.",
     "implementationPaths": "Mapped against the frozen release baseline in implementation-scope.json; use repository pages-first authority, existing shared/application identity and expo-clipboard. No RN source changes or executable policy installation.",
     "oldSpecText": "Earlier M1 prose saying the feature/platform/model are unknown is superseded by the user confirmations above, not by an unreviewed new acceptance standard.",
-    "executionPreparation": "Version 1 execution-policy.draft.json, diagnostics-fixtures.json and diagnostics-case-pack.json map the confirmed standards to bounded methods. They are local prepared-not-protected materials, not installed policies, formal evidence or admission."
+    "executionPreparation": "Version 1 execution-policy.draft.json, diagnostics-fixtures.json and diagnostics-case-pack.json map the confirmed standards to bounded methods. They are local prepared-not-protected materials, not installed policies, formal evidence or admission.",
+    "recoveryJournal": "Use a protected local SQLite RecoveryJournal with a bound trusted identity, scoped access and fence checks. Keep its durable reservations outside business snapshot rollback; reconcile unknown actions without blind redispatch. This is an execution mapping, not proof of deployed protection or M0 admission."
   },
   "unresolved": [
     {
@@ -159,7 +166,7 @@
       "id": "m0-entry-gate",
       "fields": [],
       "owner": "implementation",
-      "reason": "M0 总体尚未通过；RecoveryJournal 的本机进程/离线 SSH transport 不证明独立故障域或远端认证。局部成功不能替代 M0 准入 Gate。"
+      "reason": "M0 总体尚未通过；恢复日志采用用户确认的本机 SQLite，仍须核验受保护身份、权限、fence、持久提交，以及业务快照回滚不回滚 Journal、未知动作不盲目重派。无需独立恢复主机；局部成功仍不能替代 M0 准入 Gate。"
     }
   ]
 }

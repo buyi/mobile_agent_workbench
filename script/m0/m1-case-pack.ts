@@ -58,7 +58,18 @@ export function checkM1CasePack(input: {
     const sentinel = fixtures.cases.find((item: any) => item.id === "field-allowlist")
     check(sentinel?.forbiddenValues?.length >= 5 && sentinel.forbiddenValues.every((value: string) =>
       Object.values(sentinel.input).includes(value) && !Object.values(sentinel.expected).includes(value)), "sensitive_negative_control_missing")
-    check(["independent-journal", "exclusive-device-broker", "local-delivery-channel", "protected-case-runner", "m0-entry-gate"]
+    const journal = policy.recoveryJournal
+    check(confirmed.userConfirmed.recoveryJournal.storage === "local-sqlite" &&
+      confirmed.userConfirmed.recoveryJournal.independentHostRequired === false &&
+      journal.kind === "local-recovery-journal" && journal.storage === "sqlite" && journal.location === "local-machine" &&
+      journal.independentHostRequired === false, "local_journal_authority_changed")
+    check(journal.registered === false && journal.protected === false, "unproved_journal_publication")
+    const controls = journal.requiredControls
+    check(controls.trustedIdentityBound === true && controls.workerDirectDatabaseWriteAllowed === false &&
+      controls.epochAndGenerationChecked === true && controls.durableCommitBeforeAcknowledgement === true &&
+      controls.idempotencyBoundToOperationAndRequest === true && controls.restoredWithBusinessSnapshot === false &&
+      controls.unknownRedispatchAllowed === false, "local_journal_recovery_boundary_weakened")
+    check(["local-recovery-journal", "exclusive-device-broker", "local-delivery-channel", "protected-case-runner", "m0-entry-gate"]
       .every((id) => policy.admissionBlockers.includes(id)), "known_admission_blocker_removed")
   } catch {
     issues.push("malformed_preparation_data")

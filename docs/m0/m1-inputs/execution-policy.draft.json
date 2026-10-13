@@ -4,7 +4,7 @@
   "deliveryRunAllowed": false,
   "version": 1,
   "provenance": {
-    "userStandardsRef": "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/confirmed-inputs.json#sha256:29cc6be5df38d07d37fd6704ff50cdb3502e2e7970040371a1ca7aed9fde7149",
+    "userStandardsRef": "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/confirmed-inputs.json#sha256:75caa47e4b593bf4f176997fbe14060ca1b0c2c256447140003686bf12cce4fb",
     "scopeRef": "file:///Users/buyi/Documents/bench/docs/m0/m1-inputs/implementation-scope.json#sha256:6672acceaec98830cae64cd977198236966d46467e48d0c54963bd420e82eb82",
     "kind": "Technical enforcement mapping; no added user acceptance criteria"
   },
@@ -154,7 +154,7 @@
     "maxTransientAttemptsMeaning": "1 dispatch, zero blind automatic retries. Read-only refresh/reconciliation may inspect state; ambiguous writes remain unknown until exact operation identity is reconciled.",
     "pauseCancelLoss": "Close admission, fence stale owners, persist intent and confirm owned worker/verifier/device operations stopped before permitting another writer. ACK or process exit alone is insufficient.",
     "repair": "Preserve the failing candidate and evidence; give the model an explicit failure reason in a new bounded Attempt. Keep original acceptance, deadline and total repair count.",
-    "journal": "An independent durable authorization/recovery authority is still required. A caller ownerId, local SQLite, offline SSH test or self-declared forced-command marker is not an authenticated independent authority."
+    "journal": "Use the user-confirmed protected local SQLite RecoveryJournal. Bind the trusted journal identity and access boundary, check current epoch/generation before dispatch, and acknowledge only after durable COMMIT. Restore of an old business snapshot must preserve newer journal reservations. Unknown actions require exact operation/request reconciliation and must never be blindly dispatched again. A caller ownerId or an unprotected SQLite file does not establish this authority; no separate host or SSH transport is required."
   },
   "cleanup": {
     "onlyOwnedResources": true,
@@ -169,7 +169,7 @@
   },
   "admissionBlockers": [
     "m0-entry-gate",
-    "independent-journal",
+    "local-recovery-journal",
     "protected-execution-policy",
     "protected-case-runner",
     "login-free-ui-fixture",
@@ -177,5 +177,23 @@
     "local-delivery-channel",
     "trusted-credential-reference",
     "cleanup-reservation"
-  ]
+  ],
+  "recoveryJournal": {
+    "kind": "local-recovery-journal",
+    "storage": "sqlite",
+    "location": "local-machine",
+    "independentHostRequired": false,
+    "registered": false,
+    "protected": false,
+    "requiredControls": {
+      "trustedIdentityBound": true,
+      "workerDirectDatabaseWriteAllowed": false,
+      "epochAndGenerationChecked": true,
+      "durableCommitBeforeAcknowledgement": true,
+      "idempotencyBoundToOperationAndRequest": true,
+      "restoredWithBusinessSnapshot": false,
+      "unknownRedispatchAllowed": false
+    },
+    "publication": "Prepared requirements only. Freeze the concrete protected database location, service identity/access permissions and trusted port binding, then independently verify the listed controls before clearing local-recovery-journal admission."
+  }
 }
