@@ -153,6 +153,19 @@ macOS 管理员进程可能无法读取 Documents 中的脚本。账户实验把
 
 本机默认 `bun` 仍报告 **1.3.14**，与仓库声明的 Bun 1.4.2 不一致。没有修改全局安装；从已归档的 Bun 1.4.2 macOS arm64 受保护 fixture 复制到 `/private/tmp` 后，以 `docs/m0/workbench-toolchain.json` 中的二进制摘要 `sha256:35d20dd0263e5c950194434b925454fdfa9ba6e4467da960410fa05b08a7a5b5` 校验，并确认版本为 1.4.2。
 
-用默认 Bun 1.3.14 运行 `runtime-local` 得到 36 passed / 3 failed / 2 notRun；失败集中在额外 stdio 生命周期回归。用摘要匹配的 Bun 1.4.2、固定 OpenCode 1.18.35 二进制与摘要，并启用实际 Seatbelt FFI 探针后，`runtime-local` 为 **41 passed / 0 failed / 0 notRun**，新增的版本检查器复验见 [1.4.2 runtime-local 复验](../../.bench/m0-process-20261015/runtime-local-bun142-pinned-entry/result.json)。这确认当前宿主入口仍错误地落在 1.3.14；以后正式验证必须显式调用固定 1.4.2，不能只凭 packageManager 声明认定已经切换。
+用默认 Bun 1.3.14 运行 `runtime-local` 得到 36 passed / 3 failed / 2 notRun；失败集中在额外 stdio 生命周期回归。用摘要匹配的 Bun 1.4.2、固定 OpenCode 1.18.35 二进制与摘要，并启用实际 Seatbelt FFI 探针后，`runtime-local` 为 **41 passed / 0 failed / 0 notRun**，新增的版本检查器及干净提交复验见 [1.4.2 runtime-local 复验](../../.bench/m0-process-20261015/runtime-local-bun142-clean/result.json)。这确认当前宿主入口仍错误地落在 1.3.14；以后正式验证必须显式调用固定 1.4.2，不能只凭 packageManager 声明认定已经切换。
 
 提权 Seatbelt 复验为 28 passed / 0 failed / 2 notRun；未运行项是 operator 与 signer 的独立文件读取基线，因该次套件没有收到两份临时 fixture 参数。报告见 [sandbox-contract 复验](../../.bench/m0-process-20261015/sandbox-contract-elevated/result.json)。这不构成完整跨账户套件通过；已有独立跨账户实验范围与边界仍见前文。以上复验只证明指定宿主和固定输入的 Runtime/Sandbox 子集，不是 M0 Gate，也未启动 M1 Run。
+
+固定 1.4.2 的正式入口已加入版本检查。核心套件使用 1.4.2 复验，`contract-core`、`control-plane`、`recovery-journal-local`、`runtime-contract` 和 `sandbox-contract` 均记录 `dirty=false` 与提交 `62737c6`。Runtime 完整套件会在本次证据说明提交后再复验一次，以绑定干净源码：
+
+| 套件 | 结果 | 证据边界 |
+| --- | --- | --- |
+| contract-core | 104 passed / 0 failed / 0 notRun | 合同与解析固定样本，不代表真实运行接线 |
+| control-plane | 91 passed / 0 failed / 0 notRun | Task/Run、事件、outbox 与状态转移；不代表正式阶段签名 |
+| runtime-local | 41 passed / 0 failed / 0 notRun | 固定 OpenCode CLI、生命周期、Seatbelt FFI；最新干净源码报告见下方运行记录，不代表完整 M0 Runtime 部署 |
+| recovery-journal-local | 33 passed / 0 failed / 0 notRun | 本机 SQLite 协议，不等于受保护身份、设备和渠道的 A11 全链路 |
+| runtime-contract | 3 passed / 0 failed / 0 notRun | 汇总历史交付、A05、A06 审计，不重复执行历史实验 |
+| sandbox-contract | 28 passed / 0 failed / 2 notRun | operator/signer 跨账户文件基线未运行，整套保持 blocked |
+
+报告目录分别为 `contract-core-bun142/`、`control-plane-bun142/`、`runtime-local-bun142-clean/`、`recovery-journal-bun142/`、`runtime-contract-bun142-clean/` 和 `sandbox-contract-bun142/`，均位于 `.bench/m0-process-20261015/`。形式 M0 检查仍为 [blocked、22 项](../../.bench/m0-process-20261015/m0-final-gate/result.json)：正式阶段 Manifest/Goal/Run、可信签发材料与 A01–A15 完整证据仍缺；设备与恢复正式套件也未解阻。这些局部通过不授权 M1 Run。
