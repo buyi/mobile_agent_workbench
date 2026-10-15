@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull } from "drizzle-orm"
+import { and, asc, eq, gt, isNull } from "drizzle-orm"
 import { Cause, Context, Effect, Exit, Layer, Option, Stream } from "effect"
 import { Database } from "@opencode-ai/core/database/database"
 import { EventV2 } from "@opencode-ai/core/event"
@@ -34,6 +34,11 @@ export interface OutboxItem {
 export interface Interface {
   /** createTask/reviseGoal/startRun/pauseRun/cancelRun/resumeRun/reportRun. */
   readonly execute: (input: unknown) => Effect.Effect<ExecuteResult>
+  /** Stable task-id ordered pages from the Delivery projection; cursor is exclusive. */
+  readonly listTasks: (options?: { readonly limit?: number; readonly afterTaskId?: string }) => Effect.Effect<{
+    readonly tasks: TaskState[]
+    readonly nextAfterTaskId?: string
+  }>
   readonly getTask: (taskId: string) => Effect.Effect<TaskState | undefined>
   readonly getRun: (runId: string) => Effect.Effect<(RunState & { readonly taskId: string }) | undefined>
   /** Events after `cursor` (an aggregateVersion); a missing or unusable cursor yields a snapshot. */
@@ -348,7 +353,22 @@ export const layerWith = (options: Options = {}) =>
           return state ? { ...state.runs[runId], taskId: row.task_id } : undefined
         })
 
-      return Service.of({ execute, getTask: loadState, getRun, readEvents, watch, drainOutbox, replay })
+      const listTasks = (options: { readonly limit?: number; readonly afterTaskId?: string } = {}) =>
+        Effect.gen(function* () {
+          const requested = options.limit ?? 50
+          const limit = Number.isSafeInteger(requested) ? Math.min(100, Math.max(1, requested)) : 50
+          const query = db.select({ taskId: TaskTable.task_id, state: TaskTable.state }).from(TaskTable)
+          const rows = yield* (options.afterTaskId
+            ? query.where(gt(TaskTable.task_id, options.afterTaskId)).orderBy(asc(TaskTable.task_id)).limit(limit + 1).all()
+            : query.orderBy(asc(TaskTable.task_id)).limit(limit + 1).all()).pipe(Effect.orDie)
+          const page = rows.slice(0, limit)
+          return {
+            tasks: page.map((row) => row.state as TaskState),
+            ...(rows.length > limit && page.length ? { nextAfterTaskId: page.at(-1)!.taskId } : {}),
+          }
+        })
+
+      return Service.of({ execute, listTasks, getTask: loadState, getRun, readEvents, watch, drainOutbox, replay })
     }),
   )
 

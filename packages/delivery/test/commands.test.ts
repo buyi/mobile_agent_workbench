@@ -79,6 +79,24 @@ describe("commands and receipts", () => {
       }),
     ))
 
+  test("task-list pages recover persisted tasks in stable task-id order", () =>
+    withService(tempDb(), (s) =>
+      Effect.gen(function* () {
+        for (const taskId of ["task-charlie", "task-alpha", "task-beta"])
+          accepted(yield* exec(s, cmd.create({ taskId, goal: goal({ taskId }) })))
+
+        const first = yield* s.listTasks({ limit: 2 })
+        expect(first.tasks.map((task) => task.taskId)).toEqual(["task-alpha", "task-beta"])
+        expect(first.nextAfterTaskId).toBe("task-beta")
+
+        const second = yield* s.listTasks({ limit: 2, afterTaskId: first.nextAfterTaskId })
+        expect(second.tasks.map((task) => task.taskId)).toEqual(["task-charlie"])
+        expect(second.nextAfterTaskId).toBeUndefined()
+        expect((yield* s.listTasks({ afterTaskId: "task-zulu" })).tasks).toEqual([])
+      }),
+    ),
+  )
+
   test("goal cross-field rules are enforced on createTask", () =>
     withService(tempDb(), (s) =>
       Effect.gen(function* () {

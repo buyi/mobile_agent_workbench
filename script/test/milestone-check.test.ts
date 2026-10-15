@@ -62,13 +62,24 @@ test("the CLI passes operator cost-policy bytes and trusted dirty state into the
   const directory = temporary(), out = join(directory, "report"), policy = join(directory, "cost-policy.json")
   writeFileSync(policy, JSON.stringify({ schemaVersion: "cost-policy/1", allowUnknownCost: true }))
   const code = await milestoneCheck({ milestone: "M0", out, "cost-policy": policy }, {
-    root, environment: { sourceRevision: "1".repeat(40), dirty: true },
+    root, environment: { sourceRevision: "1".repeat(40), dirty: true, bun: "1.4.2" },
   })
   expect(code).toBe(2)
   const result = JSON.parse(readFileSync(join(out, "result.json"), "utf8"))
   expect(result.costPolicyDigest).toBe(hash(policy))
   expect(result.issues.map((item: { code: string }) => item.code)).toContain("source_dirty")
   expect(result.independentVerifierEstablished).toBe(false)
+})
+
+test("a formal M0 check blocks when the verifier host does not use the pinned Bun", async () => {
+  const out = join(temporary(), "report")
+  const code = await milestoneCheck({ milestone: "M0", out }, {
+    root, environment: { sourceRevision: "1".repeat(40), dirty: false, bun: "1.3.14" },
+  })
+  expect(code).toBe(2)
+  const result = JSON.parse(readFileSync(join(out, "result.json"), "utf8"))
+  expect(result.verdict).toBe("blocked")
+  expect(result.issues.map((item: { code: string }) => item.code)).toContain("toolchain_mismatch")
 })
 
 test("a submitted deployment manifest cannot supply its own trust or mark any of the 15 cases passed", () => {

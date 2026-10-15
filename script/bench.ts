@@ -5,7 +5,8 @@
 // human-interventions.json. Exit codes: 0 passed, 1 assertion failed, 2 environment
 // blocked / not runnable, 3 executor error. notRun is never reported as passed.
 import { createHash } from "node:crypto"
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 
 const root = join(import.meta.dir, "..")
@@ -29,7 +30,7 @@ const suites: Record<string, Suite> = {
     process.platform === "darwin"
       ? { tests: "./packages/sandbox/test" }
       : { blocked: "Seatbelt conformance requires a macOS host (run as loopit-worker, see script/macos/setup-worker.sh)" },
-  "runtime-contract": { blocked: "M0-T03 suite aggregation is not implemented: separate deployed reports prove bounded OpenCode delivery, Supervisor UID/process-tree stop, A05 controls and A06 unknown-owner rejection; see docs/m0/control-matrix.md and docs/m0/owner-loss.md. They do not establish general automatic recovery of unknown execution" },
+  "runtime-contract": { tests: "./script/m0/runtime-contract.test.ts" },
   "device-contract": { blocked: "M0-T04 incomplete: operator UI probes and a local durable Broker install/reconcile experiment are recorded; OS-exclusive device ownership/revocation and channel binding to a formal Run/Gate remain unverified" },
   recovery: { blocked: "M0-T05/T07 incomplete: local SQLite journal is the selected recovery authority; formal Task/Run/channel recovery evidence, protected journal access and OS-exclusive device side-effect control still need integration. No remote host is required (ADR-0004)" },
   "autonomy-e2e": { blocked: "M1 suite: requires a frozen M1 GoalSpec" },
@@ -57,6 +58,15 @@ function environment() {
     bun: Bun.version,
     platform: `${process.platform}-${process.arch}`,
   }
+}
+
+function pinnedToolchainVersion(): string | undefined {
+  try {
+    const toolchain = JSON.parse(readFileSync(join(root, "docs/m0/workbench-toolchain.json"), "utf8"))
+    if (toolchain.schemaVersion !== "workbench-toolchain/1" || toolchain.runtime !== "bun" ||
+        typeof toolchain.version !== "string" || !/^\d+\.\d+\.\d+$/.test(toolchain.version)) return undefined
+    return toolchain.version
+  } catch { return undefined }
 }
 
 function write(out: string, files: Record<string, unknown>) {
@@ -88,7 +98,7 @@ function parseJunit(xml: string) {
 }
 
 type Cases = ReturnType<typeof parseJunit>
-const reportFiles = ["junit.xml", "runner.log", "result.json", "events.jsonl", "artifact-manifest.json", "metrics.json", "human-interventions.json"]
+const reportFiles = ["junit.xml", "runner.log", "result.json", "events.jsonl", "artifact-manifest.json", "metrics.json", "human-interventions.json", "runtime-contract-inputs.json"]
 
 async function verify(suiteName: string, flags: Record<string, string>) {
   const suite = suites[suiteName]
@@ -131,6 +141,12 @@ async function verify(suiteName: string, flags: Record<string, string>) {
 
   if (!suite || suite.blocked)
     return finish(2, suite?.blocked ?? `unknown suite ${suiteName}; known: ${Object.keys(suites).join(", ")}`)
+  const pinnedVersion = pinnedToolchainVersion()
+  if (!pinnedVersion) return finish(2, "pinned Bun toolchain metadata is missing or invalid")
+  if (Bun.version !== pinnedVersion)
+    return finish(2, `Bun ${Bun.version} does not match pinned ${pinnedVersion}; invoke bench with the verified Bun binary`)
+  if (suiteName === "runtime-contract" && !flags["evidence-root"])
+    return finish(2, "runtime-contract requires --evidence-root pointing to the preserved M0 evidence bundle")
   if (flags.dataset && flags.dataset !== suite.dataset?.id)
     return finish(2, `dataset ${flags.dataset} is not the frozen dataset ${suite.dataset?.id ?? "(none)"}`)
   if (!existsSync(join(root, "node_modules/@opencode-ai/core")))
@@ -139,10 +155,26 @@ async function verify(suiteName: string, flags: Record<string, string>) {
   const junit = join(out, "junit.xml")
   try {
     if (suite.dataset) dataset = { id: suite.dataset.id, digest: await suite.dataset.digest() }
-    const proc = Bun.spawnSync([process.execPath, "test", suite.tests!, "--reporter=junit", `--reporter-outfile=${junit}`], {
-      cwd: root, stdout: "pipe", stderr: "pipe", env: { ...process.env, NO_COLOR: "1", FORCE_COLOR: "0" },
-    })
-    log = proc.stdout.toString() + proc.stderr.toString()
+    const testHome = mkdtempSync(join(tmpdir(), "loopit-bench-test-home-"))
+    let proc: ReturnType<typeof Bun.spawnSync>
+    try {
+      proc = Bun.spawnSync([process.execPath, "test", suite.tests!, "--reporter=junit", `--reporter-outfile=${junit}`], {
+        cwd: root, stdout: "pipe", stderr: "pipe", env: {
+          ...process.env,
+          HOME: testHome,
+          XDG_CONFIG_HOME: join(testHome, ".config"),
+          XDG_DATA_HOME: join(testHome, ".local/share"),
+          XDG_CACHE_HOME: join(testHome, ".cache"),
+          XDG_STATE_HOME: join(testHome, ".local/state"),
+          NO_COLOR: "1",
+          FORCE_COLOR: "0",
+          ...(suiteName === "runtime-contract" ? { LOOPIT_RUNTIME_EVIDENCE_ROOT: resolve(flags["evidence-root"]!), LOOPIT_BENCH_OUT: out } : {}),
+        },
+      })
+    } finally {
+      rmSync(testHome, { recursive: true, force: true })
+    }
+    log = (proc.stdout?.toString() ?? "") + (proc.stderr?.toString() ?? "")
     runner = { exitCode: proc.exitCode, signal: proc.signalCode ?? null }
     if (existsSync(junit)) cases = parseJunit(readFileSync(junit, "utf8"))
     if (proc.signalCode) return finish(3, `test runner terminated by ${proc.signalCode}`)

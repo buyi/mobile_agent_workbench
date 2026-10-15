@@ -82,6 +82,21 @@ export async function milestoneCheck(flags: Record<string, string>, context: { r
       issues: [{ code: "checker_error", path: "", message: "Checker could not safely inspect its inputs", severity: "blocked" }] }
     exitCode = 3
   }
+  let pinnedBun: string | undefined
+  try {
+    const toolchain = JSON.parse(readFileSync(join(context.root, "docs/m0/workbench-toolchain.json"), "utf8"))
+    if (toolchain.schemaVersion === "workbench-toolchain/1" && toolchain.runtime === "bun" &&
+        typeof toolchain.version === "string" && /^\d+\.\d+\.\d+$/.test(toolchain.version)) pinnedBun = toolchain.version
+  } catch { /* Missing pin is reported as a blocked milestone input below. */ }
+  const observedBun = context.environment.bun
+  if (!pinnedBun || observedBun !== pinnedBun) {
+    result = { ...result, verdict: "blocked", issues: [...(result.issues ?? []), {
+      code: "toolchain_mismatch", path: "environment.bun",
+      message: `M0 checker requires pinned Bun ${pinnedBun ?? "metadata unavailable"}; observed ${typeof observedBun === "string" ? observedBun : "unknown"}`,
+      severity: "blocked",
+    }] }
+    exitCode = 2
+  }
   result = { ...result, ...(deployment ? { verifierDeployment: { ...deployment,
     verifier: deployment.verifier ? { id: deployment.verifier.id, keyId: deployment.verifier.keyId, binding: deployment.verifier.binding } : undefined,
     requestedScopeRegistered: independentVerifierEstablished } } : {}),

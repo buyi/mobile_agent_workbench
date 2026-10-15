@@ -51,7 +51,9 @@ bun script/bench.ts milestone check --milestone M0 \
 
 后续 [A05 控制矩阵](control-matrix.md) 已在 generation 16/17 完成真实暂停、冷读、恢复、取消及双 UID 停止证明，独立审计 83 项通过。[A06 owner 丢失实验](owner-loss.md) 又在 generation 18/19 证明：controller 实际被杀而旧 Worker 仍活着时，未 ACK 事件冷重放保持 unknown、prepare/start 均为 0；随后停止核对及旧 scope/generation 拒绝通过，独立审计 105 项通过。这些固定无模型 fixture 没有释放未知 reservation，也不支持自动解锁 unknown 执行。
 
-因此 `runtime-contract` 仍输出 `blocked` 的直接原因是该入口尚未实现上述部署证据的可执行汇总，不能再解释成 Supervisor、进程树停止或所有持久恢复均未验证。现有有限证据不升级为一般场景的自动恢复，也不替代完整 M0 清单；A06 的较新结果以 owner 丢失实验为准，A05 矩阵本身没有覆盖该窗口。
+`runtime-contract` 现在可以执行上述部署证据的汇总。命令为 `bun script/bench.ts verify --suite runtime-contract --evidence-root .bench/m0-fixes --out <新目录>`；检查器读取固定的成功交付、A05 独立审计和 A06 owner-loss 独立审计，核对各自 sourceArtifacts 的字节摘要、审计条目、状态与明确边界，并生成 `runtime-contract-inputs.json`。2026-10-15 的本轮执行结果为 3 passed / 0 failed / 0 notRun，最新报告位于 `.bench/m0-process-20261015/runtime-contract-after-pin-guard/`。没有提供 evidence-root 时会 blocked；文件缺失、摘要不符、审计失败或边界字段不符合预期时不会通过。
+
+这个套件是三份历史部署证据的可重复聚合，不会重新执行模型、Supervisor、设备或管理员实验，也不为这些报告建立新的独立信任锚。报告仍明确 `milestonePassed=false`、`M1` 未实施、未知执行 reservation 不自动释放。它不能替代受信任的 M0 阶段签名、A01–A15 完整材料或 M0 Gate；A06 的拒绝路径已核验，不等于一般场景的自动恢复。
 
 ## 本机模拟器渠道实验
 
@@ -146,3 +148,11 @@ macOS 管理员进程可能无法读取 Documents 中的脚本。账户实验把
 仓库忽略规则已补充 `.DS_Store`，并显式纳入三份既有协议/输入 README，使源身份核对不再依赖操作者的全局忽略配置。该修正不改变前一次检查报告。设备端口当前的生产 Task/Run 授权、受保护绑定加载及 UID422 执行器仍需接线；本次 CLI 负例通过不能把 fixture 接线提升为正式交付能力。
 
 新签发 scope 为 generation 24：正常候选通过，错误候选、缺失文件、摘要不符、错误 Run、调用者公钥、重复请求和签名载荷篡改均按预期处理。原配置与受保护输入不变，旧密钥未复制，Worker/Signer 最终均停止。新旧受保护部署并存；本轮没有重测新 Bun 下的 controller-loss 窗口，没有把测试包切换成正式设备执行器，也没有改变旧部署信任注册的作用域。
+
+## 2026-10-15 固定工具链复验
+
+本机默认 `bun` 仍报告 **1.3.14**，与仓库声明的 Bun 1.4.2 不一致。没有修改全局安装；从已归档的 Bun 1.4.2 macOS arm64 受保护 fixture 复制到 `/private/tmp` 后，以 `docs/m0/workbench-toolchain.json` 中的二进制摘要 `sha256:35d20dd0263e5c950194434b925454fdfa9ba6e4467da960410fa05b08a7a5b5` 校验，并确认版本为 1.4.2。
+
+用默认 Bun 1.3.14 运行 `runtime-local` 得到 36 passed / 3 failed / 2 notRun；失败集中在额外 stdio 生命周期回归。用摘要匹配的 Bun 1.4.2、固定 OpenCode 1.18.35 二进制与摘要，并启用实际 Seatbelt FFI 探针后，`runtime-local` 为 **41 passed / 0 failed / 0 notRun**，新增的版本检查器复验见 [1.4.2 runtime-local 复验](../../.bench/m0-process-20261015/runtime-local-bun142-pinned-entry/result.json)。这确认当前宿主入口仍错误地落在 1.3.14；以后正式验证必须显式调用固定 1.4.2，不能只凭 packageManager 声明认定已经切换。
+
+提权 Seatbelt 复验为 28 passed / 0 failed / 2 notRun；未运行项是 operator 与 signer 的独立文件读取基线，因该次套件没有收到两份临时 fixture 参数。报告见 [sandbox-contract 复验](../../.bench/m0-process-20261015/sandbox-contract-elevated/result.json)。这不构成完整跨账户套件通过；已有独立跨账户实验范围与边界仍见前文。以上复验只证明指定宿主和固定输入的 Runtime/Sandbox 子集，不是 M0 Gate，也未启动 M1 Run。

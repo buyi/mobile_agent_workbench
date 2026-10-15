@@ -8,12 +8,15 @@ afterEach(() => { for (const root of roots.splice(0)) rmSync(root, { recursive: 
 
 // Copy the actual CLI into a small isolated repository. Every invocation launches
 // the real bench process and real Bun test runner; no verdict logic is mocked.
-function fixture(files: Record<string, string> = {}) {
+function fixture(files: Record<string, string> = {}, pinnedBunVersion = Bun.version) {
   const root = mkdtempSync(join(tmpdir(), "loopit-bench-test-"))
   roots.push(root)
-  for (const dir of ["script", "packages/delivery/test", "vendor/opencode", "node_modules/@opencode-ai/core"])
+  for (const dir of ["script", "docs/m0", "packages/delivery/test", "vendor/opencode", "node_modules/@opencode-ai/core"])
     mkdirSync(join(root, dir), { recursive: true })
   copyFileSync(join(import.meta.dir, "../bench.ts"), join(root, "script/bench.ts"))
+  writeFileSync(join(root, "docs/m0/workbench-toolchain.json"), JSON.stringify({
+    schemaVersion: "workbench-toolchain/1", runtime: "bun", version: pinnedBunVersion,
+  }))
   for (const [name, content] of Object.entries(files)) writeFileSync(join(root, "packages/delivery/test", name), content)
   const out = join(root, "reports")
   const run = (...flags: string[]) => {
@@ -104,4 +107,12 @@ test("incorrect frozen dataset produces a complete blocked report", () => {
   const { result } = fixture().run("--suite", "contract-core", "--dataset", "unknown/99")
   expect(result).toMatchObject({ verdict: "blocked", exitCode: 2, executorError: false })
   expect(result.reason).toContain("frozen dataset")
+})
+
+test("a host Bun version that differs from the pinned toolchain blocks before tests run", () => {
+  const { out, run } = fixture({ "pass.test.ts": pass }, "99.0.0")
+  const { result } = run()
+  expect(result).toMatchObject({ verdict: "blocked", exitCode: 2, sampleCount: 0, passed: 0, failed: 0 })
+  expect(result.reason).toContain(`Bun ${Bun.version} does not match pinned 99.0.0`)
+  expect(existsSync(join(out, "junit.xml"))).toBe(false)
 })
